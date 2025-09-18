@@ -7,6 +7,7 @@ import { request } from '@umijs/max';
 import { commonUpdateStatusRequest } from '../hooks/commonRequest';
 import { productNumHandler } from '@/hooks/commonRequest';
 import { useModel } from 'umi';
+import ProductItem from '@/components/commonListItem';
 
 export const useHandleReview = () => {
   const [form] = Form.useForm();
@@ -142,11 +143,11 @@ export const useHandleReview = () => {
           // 商品ID
           itemId: any;
           // 是否固定资产. 0:否, 1:是
-          isFixedAsset: number;
+          // isFixedAsset: number;
           // 是否上架不能为空. 0:未上架, 1:上架
           isOnline: number;
           // 上架数量
-          onlineQuantity: any;
+          // onlineQuantity: any;
         }[] = [];
         values.items.forEach((ii: {
           itemId: any; id: any; isFixedAsset: any; isOnline: any; onlineQuantity: any;
@@ -155,11 +156,11 @@ export const useHandleReview = () => {
             // 商品ID
             "itemId": ii.itemId,
             // 是否固定资产. 0:否, 1:是
-            "isFixedAsset": ii.isFixedAsset ? 1 : 0,
+            // "isFixedAsset": ii.isFixedAsset ? 1 : 0,
             // 是否上架不能为空. 0:未上架, 1:上架
             "isOnline": ii.isOnline ? 1 : 0,
             // 上架数量
-            "onlineQuantity": ii.onlineQuantity || 0
+            // "onlineQuantity": ii.onlineQuantity || 0
           });
         });
         const params = {
@@ -205,22 +206,8 @@ export const useHandleReview = () => {
                       const detail = currOrder.items?.[field.name] || currOrder;
                       return (
                         <Card key={field.key} style={{ marginBottom: 16 }}>
-                          <div style={{ display: 'flex', alignItems: 'center' }}
-                          >
-                            <div style={{ width: 60, height: 60, background: '#f5f5f5', borderRadius: 8, marginRight: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <img src={`${detail.coverImageUrl}`} alt="物品" style={{ width: 48, height: 48 }} />
-
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 500 }}>{detail.productName}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>规格：{detail.spec} 单价：{detail.price}元/{detail.unit}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>采购数量：{detail.quantity}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>品牌：{(detail.brandName) || '无'}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>供应商：{(detail.supplierName) || '无'}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>分类：{(detail.categoryLevel1Name) || '无'} - {detail.categoryLevel2Name}</div>
-                            </div>
-                          </div>
-                          <Form.Item
+                          <ProductItem detail={detail} />
+                          {/* <Form.Item
                             {...field}
                             name={[field.name, 'isFixedAsset']}
                             label="请选择资产类型"
@@ -230,7 +217,7 @@ export const useHandleReview = () => {
                               <Radio value={0}>易耗品</Radio>
                               <Radio value={1}>固定资产</Radio>
                             </Radio.Group>
-                          </Form.Item>
+                          </Form.Item> */}
                           {currOrder.purchaseType === 1 && <Form.Item
                             {...field}
                             label="请选择是否上架"
@@ -242,10 +229,10 @@ export const useHandleReview = () => {
                               <Radio value={0}>暂不上架</Radio>
                             </Radio.Group>
                           </Form.Item>}
-                          <Form.Item noStyle shouldUpdate={(prevValues, curValues) => {
+                          {/* <Form.Item noStyle shouldUpdate={(prevValues, curValues) => {
                             return prevValues.items[index].isOnline !== curValues.items[index].isOnline
                           }}>
-                            {/* 当isOnline为上架时，显示下面的输入框 */}
+
                             {({ getFieldValue }) => {
                               const isOnline = getFieldValue(['items', index, 'isOnline']);
                               if (isOnline === 1 && currOrder.purchaseType != 2) {
@@ -262,7 +249,7 @@ export const useHandleReview = () => {
                               }
                               return null;
                             }}
-                          </Form.Item>
+                          </Form.Item> */}
                         </Card>
                       )
                     })}

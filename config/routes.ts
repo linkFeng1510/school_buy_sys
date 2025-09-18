@@ -31,13 +31,19 @@ export default [
 
       {
         path: '/workbench/purchase-entry',
-        name: '采购录入',
+        name: '低值易耗数据录入',
         access: 'workbench:purchase-entry',
         component: './workbench/purchase-entry',
       },
       {
+        path: '/workbench/fixedThings-entry',
+        name: '资产数据录入',
+        access: 'workbench:fixedThings-entry',
+        component: './workbench/fixedThings-entry',
+      },
+      {
         path: '/workbench/claim-record',
-        name: '采购录入记录',
+        name: '数据录入记录',
         component: './workbench/claim-record',
         access: 'workbench:claim-record'
       },
@@ -61,9 +67,15 @@ export default [
       },
       {
         path: '/workbench/apply-record',
-        name: '物品申领',
+        name: '低值易耗品申领',
         component: './workbench/apply-record',
         access: 'workbench:apply-record'
+      },
+      {
+        path: '/workbench/fixedThings-apply',
+        name: '资产申领',
+        component: './workbench/fixedThings-apply',
+        access: 'workbench:fixedThings-apply'
       },
       {
         path: '/workbench/apply-confirm',

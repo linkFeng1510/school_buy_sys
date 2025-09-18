@@ -84,8 +84,8 @@ const RoleManagement: React.FC = () => {
   //     title: '工作台',
   //     key: 'workbench',
   //     children: [
-  //       { title: '采购录入', key: 'procurement_entry' },
-  //       { title: '采购录入记录', key: 'procurement_log' },
+  //       { title: '低值易耗数据录入', key: 'procurement_entry' },
+  //       { title: '数据录入记录', key: 'procurement_log' },
   //       { title: '入库审批', key: 'stock_approval' },
   //       { title: '申领审批', key: 'request_approval' },
   //       { title: '物品管理', key: 'item_management' },

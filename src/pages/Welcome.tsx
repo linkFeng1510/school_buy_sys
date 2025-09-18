@@ -19,11 +19,11 @@ const menuItems = routes[1].routes || []
 // 图标映射
 const iconMap: Record<string, React.ReactNode> = {
   '首页': <HomeOutlined />,
-  '采购录入记录': <DatabaseOutlined />,
+  '数据录入记录': <DatabaseOutlined />,
   '物品申领记录': <DatabaseOutlined />,
   '入库审批记录': <DatabaseOutlined />,
   '申领审批': <DatabaseOutlined />,
-  '采购录入': <ShoppingOutlined />,
+  '低值易耗数据录入': <ShoppingOutlined />,
   '入库审批': <FileSearchOutlined />,
   '物品管理': <BarChartOutlined />,
   '物品申领': <AppstoreOutlined />,
@@ -156,7 +156,7 @@ const ApplyConfirm: React.FC = () => {
       // 如果item中存在orderNo值，那么有三种状态，0待审核，1通过，2驳回
       if (item.auditStatus !== undefined) {
         if (item.auditStatus == '0') {
-          strName = '采购录入';
+          strName = '低值易耗数据录入';
         } else if (item.auditStatus == '1') {
           strName = '采购入库已通过';
         } else if (item.auditStatus == '2') {

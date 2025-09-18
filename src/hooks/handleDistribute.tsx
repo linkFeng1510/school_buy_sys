@@ -5,6 +5,7 @@ import { ItemData } from './commonHooks'; // 假设与 commonHooks.tsx 共享接
 import { request } from '@umijs/max';
 import { productNumHandler } from '@/hooks/commonRequest';
 import { title } from 'process';
+import ProductItem from '@/components/commonListItem';
 const { Option } = Select;
 
 interface User {
@@ -126,16 +127,7 @@ export const useHandleDistribute = () => {
                       const detail = currOrder.items?.[field.name] || currOrder;
                       return (
                         <Card key={field.key} style={{ marginBottom: 16 }}>
-                          <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <div style={{ width: 60, height: 60, background: '#f5f5f5', borderRadius: 8, marginRight: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <img src={`${detail.coverImageUrl}`} alt="物品" style={{ width: 48, height: 48 }} />
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 500 }}>{detail.productName}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>规格：{detail.spec} 单价：{detail.price}元/{detail.unit}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>已审领数量: {detail.claimQuantity}</div>
-                            </div>
-                          </div>
+                          <ProductItem detail={detail} />
                           {detail.claimQuantity > 1 &&
                             <Form.Item
                               {...field}

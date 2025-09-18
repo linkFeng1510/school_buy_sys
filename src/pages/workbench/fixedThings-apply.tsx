@@ -30,18 +30,16 @@ interface GoodsItem {
 
 const ApplyRecord: React.FC = () => {
   const [form] = Form.useForm();
-  const [locationForm] = Form.useForm();
   const [search, setSearch] = useState('');
   const [goods, setGoods] = useState<GoodsItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState<any[]>([]);
   const [addModal, setAddModal] = useState(false);
   const [addItem, setAddItem] = useState<any>(null);
-  const [addNum, setAddNum] = useState<number>(0);
+  const [addNum, setAddNum] = useState<number>(1);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { initialState } = useModel('@@initialState');
   const { currentUser } = initialState || {};
-  const [addLocation, setAddLocation] = useState<string>('');
   // Fetch goods data from API
   useEffect(() => {
     fetchGoods();
@@ -78,7 +76,7 @@ const ApplyRecord: React.FC = () => {
   // 加入申领车
   const handleAdd = (item: any) => {
     setAddItem(item);
-    setAddNum(0);
+    setAddNum(1);
     setAddModal(true);
   };
   const handleAddConfirm = () => {
@@ -209,17 +207,26 @@ const ApplyRecord: React.FC = () => {
       {/* 加入申领车弹窗 */}
       <Modal
         open={addModal}
-        footer={null}
         onCancel={() => setAddModal(false)}
+        onOk={handleAddConfirm}
+        okText="确认加入"
+        cancelText="取消"
         centered
+        destroyOnClose
       >
         {addItem && (
-          <>
-            <Form layout="vertical" form={locationForm} >
-              <Form.Item label="">
-                <ProductItem detail={addItem} />
-              </Form.Item>
-              <Form.Item label="申领数量" style={{ margin: '8px 0' }} rules={[{ required: true, message: '请输入申领数量' }]}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: 16 }}>
+            <div style={{ width: 60, height: 60, background: '#f5f5f5', borderRadius: 8, marginRight: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src={`${addItem.coverImageUrl}`} alt="物品" style={{ width: 48, height: 48 }} />
+            </div>
+            <div style={{ flex: 1, fontSize: 12, color: '#999' }}>
+              <div style={{ fontWeight: 500, color: '#111' }}>{addItem.productName}</div>
+              <div>规格:{addItem.spec || '无'}</div>
+              <div>单价:¥{addItem.price || 0}元/{addItem.unit || '件'}</div>
+              <div>品牌：{(addItem.brandName) || '无'}</div>
+              <div>供应商：{(addItem.supplierName) || '无'}</div>
+              <div>可申领数量:{addItem.onlineQuantity || 0}</div>
+              <div style={{ marginTop: 8 }}>
                 <InputNumber
                   parser={(value) => parseInt(value || '0', 10)}
                   min={1}
@@ -229,32 +236,10 @@ const ApplyRecord: React.FC = () => {
                   style={{ width: 160 }}
                   placeholder="请输入申领数量"
                 />
+              </div>
+            </div>
 
-              </Form.Item>
-              <Form.Item label="存放地点" rules={[{ required: true, message: '请输入存放地点' }]}>
-                <Input
-                  value={addLocation}
-                  onChange={v => setAddLocation(v.target.value)}
-                  style={{ width: 160 }}
-                  placeholder="请输入存放地点"
-                />
-
-              </Form.Item>
-              <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-                <Button
-                  type="primary"
-                  style={{ marginRight: 8 }}
-                  onClick={handleAddConfirm}
-                >
-                  确认加入
-                </Button>
-                <Button
-                >
-                  取消
-                </Button>
-              </Form.Item>
-            </Form>
-          </>
+          </div>
         )}
       </Modal>
 
@@ -301,10 +286,6 @@ const ApplyRecord: React.FC = () => {
                       <div>
                         库存数量:{item.onlineQuantity}
                       </div>
-                      <div>
-                        存放地点:{item.location}
-                      </div>
-
                     </div>
                   }
                 />

@@ -6,6 +6,7 @@ import SignName from '@/pages/workbench/components/SignName';
 import { request, useModel } from '@umijs/max';
 import { commonUpdateStatusRequest } from '../hooks/commonRequest';
 import { productNumHandler } from '@/hooks/commonRequest';
+import ProductItem from '@/components/commonListItem';
 export const useHandleSign = () => {
     const { initialState } = useModel('@@initialState');
     const { currentUser } = initialState || {};
@@ -75,17 +76,7 @@ export const useHandleSign = () => {
                       const detail = currOrder.items?.[field.name] || currOrder;
                       return (
                         <Card key={field.key} style={{ marginBottom: 16 }}>
-                          <div style={{ display: 'flex', alignItems: 'center' }}
-                          >
-                            <div style={{ width: 60, height: 60, background: '#f5f5f5', borderRadius: 8, marginRight: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <img src={`${detail.coverImageUrl}`} alt="物品" style={{ width: 48, height: 48 }} />
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 500 }}>{detail.productName}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>规格：{detail.spec} 单价：{detail.price}元/{detail.unit}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>申领数量：{detail.claimQuantity}</div>
-                            </div>
-                          </div>
+                          <ProductItem detail={detail} />
                         </Card>
                       )
                     })}

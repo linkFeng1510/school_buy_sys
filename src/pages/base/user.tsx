@@ -568,6 +568,13 @@ const UserManagement: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
+          <Form.Item
+            name="signName"
+            label="签名"
+            rules={[{ required: true, message: '请输入签名', max: 20 }]}
+          >
+            <AntInput placeholder="请输入签名（20字以内）" maxLength={20} />
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -648,7 +655,13 @@ const UserManagement: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-
+          <Form.Item
+            name="signName"
+            label="签名"
+            rules={[{ required: true, message: '请输入签名', max: 20 }]}
+          >
+            <AntInput placeholder="请输入签名（20字以内）" maxLength={20} />
+          </Form.Item>
           <Form.Item
             name="status"
             label="状态"

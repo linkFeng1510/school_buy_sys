@@ -7,6 +7,7 @@ import { request } from '@umijs/max';
 import { commonUpdateApplyRequest } from '../hooks/commonRequest';
 import { productNumHandler } from '@/hooks/commonRequest';
 import { useModel } from 'umi';
+import ProductItem from '@/components/commonListItem';
 
 export const useHandleApplyConfirm = () => {
   const [form] = Form.useForm();
@@ -137,19 +138,7 @@ export const useHandleApplyConfirm = () => {
                       const detail = currOrder.items?.[field.name] || currOrder;
                       return (
                         <Card key={field.key} style={{ marginBottom: 16 }}>
-                          <div style={{ display: 'flex', alignItems: 'center' }}
-                          >
-                            <div style={{ width: 60, height: 60, background: '#f5f5f5', borderRadius: 8, marginRight: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <img src={`${detail.coverImageUrl}`} alt="物品" style={{ width: 48, height: 48 }} />
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 500 }}>{detail.productName}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>规格: {detail.spec} 单价: {detail.price}元/{detail.unit}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>品牌: {(detail.brandName) || '无'}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>供应商: {(detail.supplierName) || '无'}</div>
-                              <div style={{ color: '#888', fontSize: 12 }}>申领数量:{detail.claimQuantity}</div>
-                            </div>
-                          </div>
+                          <ProductItem detail={detail} />
                         </Card>
                       )
                     })}
