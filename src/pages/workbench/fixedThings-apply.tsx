@@ -185,7 +185,7 @@ const ApplyRecord: React.FC = () => {
             bodyStyle={{ display: 'flex', alignItems: 'center', padding: 16 }}
             key={item.itemId}
           >
-            <ProductItem detail={item} />
+            <ProductItem detail={item} hideTotal={true} isProduct={true} />
             <Button type="primary" onClick={() => handleAdd(item)}>加入申领车</Button>
           </Card>
         )}

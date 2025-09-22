@@ -31,7 +31,7 @@ const claim: React.FC = () => {
         pageSize: pageSize,
         itemStatus: tab,
         isAdmin: false,
-        isFixedAsset: 0
+        isFixedAsset: 1
       };
       // Add filters if they exist
       if (searchTxt) {

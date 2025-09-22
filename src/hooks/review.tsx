@@ -143,24 +143,25 @@ export const useHandleReview = () => {
           // 商品ID
           itemId: any;
           // 是否固定资产. 0:否, 1:是
-          // isFixedAsset: number;
+          isFixedAsset: number;
           // 是否上架不能为空. 0:未上架, 1:上架
           isOnline: number;
           // 上架数量
-          // onlineQuantity: any;
+          onlineQuantity: any;
         }[] = [];
         values.items.forEach((ii: {
+          quantity: number;
           itemId: any; id: any; isFixedAsset: any; isOnline: any; onlineQuantity: any;
         }) => {
           itemConfigs.push({
             // 商品ID
             "itemId": ii.itemId,
             // 是否固定资产. 0:否, 1:是
-            // "isFixedAsset": ii.isFixedAsset ? 1 : 0,
+            "isFixedAsset": ii.isFixedAsset ? 1 : 0,
             // 是否上架不能为空. 0:未上架, 1:上架
             "isOnline": ii.isOnline ? 1 : 0,
             // 上架数量
-            // "onlineQuantity": ii.onlineQuantity || 0
+            "onlineQuantity": ii.quantity || 0
           });
         });
         const params = {

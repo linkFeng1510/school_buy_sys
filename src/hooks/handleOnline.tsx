@@ -60,18 +60,6 @@ export const useHandleOnline = () => {
                         <Form.Item
                           {...field}
                           key={field.key}
-                          name={[field.name, 'isFixedAsset']}
-                          label="请选择资产类型"
-                          rules={[{ required: true, message: '请选择资产类型' }]}
-                        >
-                          <Radio.Group>
-                            <Radio value={0}>易耗品</Radio>
-                            <Radio value={1}>固定资产</Radio>
-                          </Radio.Group>
-                        </Form.Item>
-                        <Form.Item
-                          {...field}
-                          key={field.key}
                           label="请选择是否上架"
                           name={[field.name, 'itemStatus']}
                           rules={[{ required: true, message: '请选择是否上架' }]}

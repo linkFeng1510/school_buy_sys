@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { Card, Tabs, Button, Tag, List, Modal, Typography, Empty, Input, message, Space, Pagination, Row, Col, Form } from 'antd';
 import {
@@ -6,22 +8,33 @@ import {
 import { request } from 'umi';
 import PurchaseItemCard from './components/ProductItem';
 const statusTabs = [
-  { key: '', label: '全部' },
-  { key: '0', label: '已上架' },
-  { key: '2', label: '无库存' },
-  { key: '1', label: '未上架' },
+  { key: 'all', label: '全部' },
+  { key: 'wait', label: '待审核' },
+  { key: 'sign', label: '待签收' },
+  { key: 'reject', label: '已驳回' },
+  { key: 'done', label: '已完成' },
 ];
 
-const claim: React.FC = () => {
-  const [tab, setTab] = useState('');
-  const [searchTxt, setSearchTxt] = useState('');
+const ApplyConfirm: React.FC = () => {
+  const [tab, setTab] = useState('all');
+  const [username, setApplyUser] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [listData, setListData] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const [form] = Form.useForm();
+  // Map tab keys to shelfStatus values for API
+  const getShelfStatusByTab = () => {
+    switch (tab) {
+      case 'wait': return 0;  // 未申领
+      case 'sign': return 3;  // 已申领
+      case 'done': return 1;  // 已通过
+      case 'reject': return 2; // 被驳回
+      default: return undefined; // 不过滤
+    }
+  };
+
   // Fetch data from API
   const fetchData = async () => {
     setLoading(true);
@@ -29,21 +42,27 @@ const claim: React.FC = () => {
       const params: any = {
         pageNum: page,
         pageSize: pageSize,
-        itemStatus: tab,
-        isAdmin: false,
-        isFixedAsset: 0
+        isAdmin: true,
+        isFixedAsset: 1
       };
+
       // Add filters if they exist
-      if (searchTxt) {
-        params.itemName = searchTxt;
+      if (username) {
+        params.username = username;
       }
-      const response = await request('/api/item/list', {
+
+      if (tab !== 'all') {
+        params.claimStatus = getShelfStatusByTab();
+      }
+
+      const response = await request('/api/claim/list', {
         method: 'POST',
         data: params
       });
 
       if (response.code === 200) {
-        setListData(response.data.records || []);
+        let responseData = response.data.records
+        setListData(responseData);
         setTotal(response.data.total || 0);
       } else {
         message.error(response.msg || '获取数据失败');
@@ -62,28 +81,33 @@ const claim: React.FC = () => {
   // Fetch data when dependencies change
   useEffect(() => {
     fetchData();
-  }, [searchTxt, page, pageSize, tab]);
+  }, [tab, username, page, pageSize]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setPage(1);
-  }, [searchTxt, tab]);
+  }, [tab, username]);
 
 
   return (
     <PageContainer >
       {/* 搜索条件 */}
-      <Form
+      {/* <Form
         layout="inline"
+        onFinish={() => {
+          setPage(1)
+          fetchData();
+        }}
+        initialValues={{ user: username }}
         style={{ marginBottom: 8 }}
       >
-        <Form.Item style={{ marginTop: 16 }} >
+        <Form.Item style={{ marginTop: 16 }} name="user">
           <Input
-          value={searchTxt}
-          onChange={e => setSearchTxt(e.target.value)}
-            placeholder="请输入品牌名、商品名"
+            placeholder="请输入用户"
             allowClear
-            style={{ width: 180 }}
+            style={{ width: 160 }}
+            onChange={e => { setApplyUser(e.target.value); setPage(1); }}
+            value={username}
           />
         </Form.Item>
         <Form.Item style={{ marginTop: 16 }} >
@@ -92,16 +116,14 @@ const claim: React.FC = () => {
           </Button>
           <Button
             onClick={() => {
-              setSearchTxt('');
-              //刷新页面
-
+              setApplyUser('');
+              setPage(1);
             }}
           >
             重置
           </Button>
-
         </Form.Item>
-      </Form>
+      </Form> */}
       <Tabs
         activeKey={tab}
         onChange={key => { setTab(key); setPage(1); }}
@@ -118,7 +140,7 @@ const claim: React.FC = () => {
             <List
               loading={loading}
               dataSource={listData}
-                renderItem={item => <PurchaseItemCard key={item.itemId} item={item} updateList={fetchData} isAdmin={false} isProduct={true} />}
+              renderItem={item => <PurchaseItemCard key={item.id} item={item} updateList={fetchData} isAdmin={true} isProduct={false} />}
             />
             {/* 分页 */}
             <Row justify="end" style={{ marginTop: 16 }}>
@@ -147,4 +169,4 @@ const claim: React.FC = () => {
   );
 };
 
-export default claim;
+export default ApplyConfirm;

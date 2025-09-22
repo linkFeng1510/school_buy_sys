@@ -138,7 +138,7 @@ export const useHandleApplyConfirm = () => {
                       const detail = currOrder.items?.[field.name] || currOrder;
                       return (
                         <Card key={field.key} style={{ marginBottom: 16 }}>
-                          <ProductItem detail={detail} />
+                          <ProductItem detail={detail} hideTotal={true} />
                         </Card>
                       )
                     })}

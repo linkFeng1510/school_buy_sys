@@ -49,9 +49,15 @@ export default [
       },
       {
         path: '/workbench/stock-entry',
-        name: '入库审批',
+        name: '低值易耗品入库审批',
         component: './workbench/stock-entry',
         access: 'workbench:stock-entry'
+      },
+      {
+        path: '/workbench/fixedThings-stock-entry',
+        name: '资产入库审批',
+        component: './workbench/fixedThings-stock-entry',
+        access: 'workbench:thingsStock-entry'
       },
       {
         path: '/workbench/stock-batch',
@@ -61,15 +67,21 @@ export default [
       },
       {
         path: '/workbench/claim',
-        name: '物品管理',
+        name: '低值易耗品管理',
         component: './workbench/claim',
         access: 'workbench:claim'
+      },
+      {
+        path: '/workbench/fixedThings-claim',
+        name: '资产管理',
+        component: './workbench/fixedThings-claim',
+        access: 'workbench:fixedThings-claim'
       },
       {
         path: '/workbench/apply-record',
         name: '低值易耗品申领',
         component: './workbench/apply-record',
-        access: 'workbench:apply-record'
+        access: 'workbench:purchase-apply'
       },
       {
         path: '/workbench/fixedThings-apply',
@@ -79,9 +91,15 @@ export default [
       },
       {
         path: '/workbench/apply-confirm',
-        name: '申领审批',
+        name: '低值易耗品申领审批',
         component: './workbench/apply-confirm',
         access: 'workbench:apply-confirm'
+      },
+      {
+        path: '/workbench/fixedThings-apply-confirm',
+        name: '资产申领审批',
+        component: './workbench/fixedThings-apply-confirm',
+        access: 'workbench:fixedThings-confirm'
       },
       {
         path: '/workbench/purchase-record',
@@ -127,21 +145,33 @@ export default [
     routes: [
       {
         path: '/finance/data-overview',
-        name: '数据总览',
+        name: '低值易耗品盘存',
         component: './finance/data-overview',
         access: 'finance:data-overview'
       },
       {
         path: '/finance/claim-stat',
-        name: '申领数据统计',
+        name: '低值耗材入库数据统计',
         component: './finance/claim-stat',
         access: 'finance:claim-stat'
       },
       {
         path: '/finance/purchase-stat',
-        name: '采购数据统计',
+        name: '低值耗材出库数据统计',
         component: './finance/purchase-stat',
         access: 'finance:purchase-stat'
+      },
+      {
+        path: '/finance/thingsStock-stat',
+        name: '资产入库统计',
+        component: './finance/purchase-stat',
+        access: 'finance:thingsStock-stat'
+      },
+      {
+        path: '/finance/thingsStock-out-stat',
+        name: '资产出库统计',
+        component: './finance/purchase-stat',
+        access: 'finance:thingsStock-out-stat'
       },
     ],
   },

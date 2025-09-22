@@ -54,7 +54,9 @@ const ApplyRecord: React.FC = () => {
         method: 'POST',
         data: {
           isAdmin: true,
+          isFixedAsset: 0,
           pageNum: 1,
+          itemStatus: 0,
           pageSize: 1000,
           itemName: search || '',
         }
@@ -81,6 +83,13 @@ const ApplyRecord: React.FC = () => {
     setAddNum(0);
     setAddModal(true);
   };
+  const cancelAdd = () => {
+    setAddModal(false);
+    setAddItem(null);
+    setAddNum(0);
+    setAddLocation('');
+    locationForm.resetFields();
+  }
   const handleAddConfirm = () => {
     if (!addNum || addNum < 1) {
       message.warning('请输入正确的数量');
@@ -93,12 +102,14 @@ const ApplyRecord: React.FC = () => {
     const exist = cart.find((c) => c.itemId === addItem.itemId);
     let newCart;
     if (exist) {
-      newCart = cart.map(c => c.itemId === addItem.itemId ? { ...c, num: c.num + addNum } : c);
+      newCart = cart.map(c => c.itemId === addItem.itemId ? { ...c, num: c.num + addNum, location: addLocation } : c);
     } else {
-      newCart = [...cart, { ...addItem, num: addNum }];
+      newCart = [...cart, { ...addItem, num: addNum, location: addLocation }];
     }
     setCart(newCart);
     setAddModal(false);
+    setAddNum(0);
+    setAddLocation('');
     message.success('已加入申领车');
   };
 
@@ -122,6 +133,7 @@ const ApplyRecord: React.FC = () => {
     const items = cart.map(curr => {
       return {
         "itemId": curr.itemId,
+        "isFixedAsset": curr.isFixedAsset ? 1 : 0,
         "claimQuantity": curr.num
       }
     })
@@ -187,7 +199,7 @@ const ApplyRecord: React.FC = () => {
             bodyStyle={{ display: 'flex', alignItems: 'center', padding: 16 }}
             key={item.itemId}
           >
-            <ProductItem detail={item} />
+            <ProductItem detail={item} hideTotal={true} isProduct={true} />
             <Button type="primary" onClick={() => handleAdd(item)}>加入申领车</Button>
           </Card>
         )}
@@ -217,7 +229,7 @@ const ApplyRecord: React.FC = () => {
           <>
             <Form layout="vertical" form={locationForm} >
               <Form.Item label="">
-                <ProductItem detail={addItem} />
+                <ProductItem detail={addItem} hideTotal={true} isProduct={true} />
               </Form.Item>
               <Form.Item label="申领数量" style={{ margin: '8px 0' }} rules={[{ required: true, message: '请输入申领数量' }]}>
                 <InputNumber
@@ -249,6 +261,7 @@ const ApplyRecord: React.FC = () => {
                   确认加入
                 </Button>
                 <Button
+                  onClick={cancelAdd}
                 >
                   取消
                 </Button>
@@ -294,10 +307,15 @@ const ApplyRecord: React.FC = () => {
                   avatar={<div style={{ width: 60, height: 60, background: '#f5f5f5', borderRadius: 8, marginRight: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <img src={`${addItem.coverImageUrl}`} alt="物品" style={{ width: 48, height: 48 }} />
                   </div>}
-                  title={`${item.brandName}${item.productName}${item.spec}`}
+                  title={ <div>
+                    <div>{item.productName}</div>
+                    <div>{item.brandName}</div>
+                    <div>{item.supplierName}</div>
+                    <div>{item.spec}</div>
+                  </div>}
                   description={
                     <div>
-                      <div>单价:{item.unit}  单价：{item.price}元 </div>
+                      <div>单价：{item.price}元/{item.unit} </div>
                       <div>
                         库存数量:{item.onlineQuantity}
                       </div>

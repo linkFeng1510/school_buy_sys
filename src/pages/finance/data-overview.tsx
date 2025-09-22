@@ -1,64 +1,71 @@
-import React from 'react';
-import { Button, Card, Col, Form, Row, Select, Space } from 'antd';
-import { PageContainer } from '@ant-design/pro-components';
-import { Line } from '@ant-design/charts';
 
-const DashboardPage: React.FC = () => {
-  // 采购数据概览图表数据
-  const data1 = [
-    { year: '2019-01', value: 800 },
-    { year: '2019-02', value: 950 },
-    { year: '2019-03', value: 700 },
-    { year: '2019-04', value: 1100 },
-    { year: '2019-05', value: 850 },
-    { year: '2019-06', value: 600 },
-  ];
+import React, { useEffect } from 'react';
+import { Button, Card, Col, Form, Row, Select, Space, message } from 'antd';
+import { PageContainer, ProTable } from '@ant-design/pro-components';
+import { request } from '@umijs/max';
 
-  // 申领数据概览图表数据
-  const data2 = [
-    { year: '2019-01', value: 700 },
-    { year: '2019-02', value: 850 },
-    { year: '2019-03', value: 1000 },
-    { year: '2019-04', value: 900 },
-    { year: '2019-05', value: 750 },
-    { year: '2019-06', value: 650 },
-  ];
+const ApplicationListPage: React.FC = () => {
 
-  const config1 = {
-    data: data1,
-    xField: 'year',
-    yField: 'value',
-    color: ['#5B8FF9', '#87d068'],
-    xAxis: { type: 'time' },
-    yAxis: { label: { formatter: (v: number) => `${v}` } },
-    legend: { position: 'top' },
-    smooth: true,
+  const [dataList, setListData] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [total, setTotal] = React.useState(0);
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(5);
+  const [currMonth, setCurrMonth] = React.useState(9);
+  const [currYear, setCurrYear] = React.useState(2025);
+
+  useEffect(() => {
+    // Fetch data when component mounts
+    fetchData();
+  }, []);
+  const fetchData = async () => {
+    // Replace with your actual API endpoint
+    setLoading(true);
+    try {
+      const params: any = {
+        pageNum: page,
+        pageSize: pageSize,
+        isAdmin: true,
+        year: currYear,
+        month: currMonth
+      };
+
+
+      const response = await request('/api/stat/lowValueItem', {
+        method: 'POST',
+        data: params
+      });
+
+      if (response.code === 200) {
+        let responseData = response.data.records
+        setListData(responseData);
+        setTotal(response.data.total || 0);
+      } else {
+        message.error(response.msg || '获取数据失败');
+        setListData([]);
+        setTotal(0);
+      }
+    } catch (error) {
+      message.error('获取数据失败');
+      setListData([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+
   };
-
-  const config2 = {
-    data: data2,
-    xField: 'year',
-    yField: 'value',
-    color: ['#5B8FF9', '#87d068'],
-    xAxis: { type: 'time' },
-    yAxis: { label: { formatter: (v: number) => `${v}` } },
-    legend: { position: 'top' },
-    smooth: true,
-  };
-
   return (
     <PageContainer
-      title={false} // 移除默认标题
     >
       <Form layout="inline" style={{ marginBottom: 16 }}>
         <Form.Item label="选择时间" style={{ marginTop: 16 }}>
-          <Select key="year" style={{ width: 120 }}>
+          <Select key="year" style={{ width: 120 }} value={currYear} defaultValue={currYear} onChange={(value) => { setCurrYear(value); }}>
             <Select.Option value="2025">2025年</Select.Option>
             <Select.Option value="2024">2024年</Select.Option>
           </Select>
         </Form.Item>
         <Form.Item label="选择月份" style={{ marginTop: 16 }}>
-          <Select key="month" style={{ width: 120 }}>
+          <Select key="month" style={{ width: 120 }} value={currMonth} defaultValue={currMonth} onChange={(value) => { setCurrMonth(value); }}>
             <Select.Option value="1">1月</Select.Option>
             <Select.Option value="2">2月</Select.Option>
             <Select.Option value="3">3月</Select.Option>
@@ -74,33 +81,52 @@ const DashboardPage: React.FC = () => {
           </Select>
         </Form.Item>
         <Form.Item style={{ marginTop: 16 }}>
-          <Button key="search" style={{ padding: '0 16px' }}>
+          <Button key="search" style={{ padding: '0 16px' }} onClick={fetchData}>
             搜索
           </Button>
         </Form.Item>
       </Form>
-      <Row gutter={16} style={{ marginTop: 16 }}>
-        <Col span={12}>
-          <Card >
-            <h3>采购数据概览</h3>
-            <p>采购物品总数：267件</p>
-            <p>采购物品总价值：4678元</p>
-            <Line {...config1} height={300} />
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Card >
-            <h3>申领数据概览</h3>
-            <p>申领物品总数：267件</p>
-            <p>申领物品总价值：4678元</p>
-            <Line {...config2} height={300} />
-          </Card>
-        </Col>
-
-
-      </Row>
+      <ProTable columns={[
+        {
+          title: '资产名称',
+          dataIndex: 'productName',
+          valueType: 'text',
+          width: 200,
+        },
+        {
+          title: '品牌',
+          dataIndex: 'brandName',
+          valueType: 'text',
+          width: 200,
+        },
+        {
+          title: '规格型号',
+          dataIndex: 'spec',
+          valueType: 'text',
+        },
+        {
+          title: '单位',
+          dataIndex: 'unit',
+          valueType: 'text',
+        },
+        {
+          title: '数量',
+          dataIndex: 'totalQuantity',
+          valueType: 'text',
+        },
+        {
+          title: '单价',
+          dataIndex: 'price',
+          valueType: 'text',
+        },
+        {
+          title: '总金额',
+          dataIndex: 'totalAmount',
+          valueType: 'text',
+        },
+      ]} dataSource={dataList} pagination={{ total, current: page, pageSize }} search={false} />
     </PageContainer>
   );
 };
 
-export default DashboardPage;
+export default ApplicationListPage;

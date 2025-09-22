@@ -219,6 +219,7 @@ const FixedThingsEntry: React.FC = () => {
       formData.append(`items[${index}].categoryLevel1Id`, item.category[0]);
       formData.append(`items[${index}].categoryLevel2Id`, item.category[1]);
       formData.append(`items[${index}].unit`, item.unit);
+      formData.append(`items[${index}].isFixedAsset`, '1');// 固定资产
       formData.append(`items[${index}].quantity`, item.quantity);
       formData.append(`items[${index}].price`, item.price);
       formData.append(`items[${index}].supplierName`, item.supplierName);
@@ -298,6 +299,22 @@ const FixedThingsEntry: React.FC = () => {
         onFinish={handleFinish}
         initialValues={{ purchaseType: "1" }}
       >
+
+        <Form.Item style={{ marginBottom: 16, textAlign: 'right' }}>
+          <Button
+            type={"primary"}
+            style={{ marginRight: 8 }}
+            onClick={() => setAddModalVisible(true)}
+          >
+            下载导入模板
+          </Button>
+          <Button
+            type={"primary"}
+            onClick={() => setAddModalVisible(true)}
+          >
+            导入数据
+          </Button>
+        </Form.Item>
         {items.map((item, idx) => (
           <Card
             key={idx}
@@ -384,21 +401,6 @@ const FixedThingsEntry: React.FC = () => {
             </Row>
           </Card>
         ))}
-        <Form.Item style={{ marginBottom: 16, textAlign: 'right' }}>
-          <Button
-            type={"primary"}
-            style={{ marginRight: 8 }}
-            onClick={() => setAddModalVisible(true)}
-          >
-            下载导入模板
-          </Button>
-          <Button
-            type={"primary"}
-            onClick={() => setAddModalVisible(true)}
-          >
-            导入数据
-          </Button>
-        </Form.Item>
         <Form.Item>
           <Button
             type="dashed"

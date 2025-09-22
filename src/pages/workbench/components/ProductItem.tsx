@@ -85,12 +85,12 @@ const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: b
                 ￥{productMoneyHandler(currOrder)}元
               </Typography.Text>
             </Col>}
-            {isProduct && <><ProductItem detail={currOrder} />
+            {isProduct && <><ProductItem detail={currOrder} hideTotal={true} isProduct={true} />
             </>
             }
             <Col style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '-webkit-fill-available', maxHeight: 200 }}>
               <div >{renderStatusTag()}</div>
-              <div ><Tag color="blue" style={{ margin: 0 }}>{currOrder.purchaseType === 1 ? '资产' : '低值易耗品'}</Tag></div>
+             {isProduct&& <div ><Tag color="blue" style={{ margin: 0 }}>{currOrder.isFixedAsset === 1 ? '资产' : '低值易耗品'}</Tag></div>}
               <div onClick={handleActionClick}>{renderActionButtons()}</div>
             </Col>
           </>
@@ -112,7 +112,7 @@ const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: b
                 renderItem={(child: any) => {
                   const qualityNum = child.quantity || child.claimQuantity
                   return (
-                    <ProductItem detail={child}
+                    <ProductItem detail={child} hideTotal={true}
                     />)
                 }
                 }

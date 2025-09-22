@@ -194,14 +194,14 @@ const PurchaseEntry: React.FC = () => {
   };
 
 
-  const handleFinish =async (values: any) => {
+  const handleFinish = async (values: any) => {
     // 如果物品列表为空，提示不能提交
     if (items.length === 0) {
       message.error('请添加物品');
       return;
     }
     //校验必填项
-      // setShowModal(true);
+    // setShowModal(true);
     // 调用接口 / api / purchaseitem / add，post请求，form - data格式，字段分别是productName是商品名称，spec是规格，brandName是品牌，categoryLevel1Id是一级类目 ID，categoryLevel2Id是二级类目 ID，unit是单位，supplierName是供应商名称，purchaseType是采购类型（1 = 直采，2 = 定向采购），purchaseQuantity是采购数量，purchasePrice是采购单价，applicantName定向采购时必填（purchaseType = 2 时），applyDepartment申请部门（可为空），images是对应的图片资源，userId是用户ID
     const userId = initialState?.currentUser?.userId || ''
     const userName = initialState?.currentUser?.name || ''
@@ -219,6 +219,7 @@ const PurchaseEntry: React.FC = () => {
       formData.append(`items[${index}].categoryLevel1Id`, item.category[0]);
       formData.append(`items[${index}].categoryLevel2Id`, item.category[1]);
       formData.append(`items[${index}].unit`, item.unit);
+      formData.append(`items[${index}].isFixedAsset`, '0');// 低值易耗品
       formData.append(`items[${index}].quantity`, item.quantity);
       formData.append(`items[${index}].price`, item.price);
       formData.append(`items[${index}].supplierName`, item.supplierName);
@@ -298,6 +299,22 @@ const PurchaseEntry: React.FC = () => {
         onFinish={handleFinish}
         initialValues={{ purchaseType: "1" }}
       >
+
+        <Form.Item style={{ marginBottom: 16, textAlign: 'right' }}>
+          <Button
+            type={"primary"}
+            style={{ marginRight: 8 }}
+            onClick={() => setAddModalVisible(true)}
+          >
+            下载导入模板
+          </Button>
+          <Button
+            type={"primary"}
+            onClick={() => setAddModalVisible(true)}
+          >
+            导入数据
+          </Button>
+        </Form.Item>
         {items.map((item, idx) => (
           <Card
             key={idx}
@@ -384,21 +401,6 @@ const PurchaseEntry: React.FC = () => {
             </Row>
           </Card>
         ))}
-        <Form.Item style={{ marginBottom: 16,textAlign:'right' }}>
-          <Button
-            type={"primary"}
-            style={{ marginRight: 8 }}
-            onClick={() => setAddModalVisible(true)}
-          >
-            下载导入模板
-          </Button>
-          <Button
-            type={"primary"}
-            onClick={() => setAddModalVisible(true)}
-          >
-            导入数据
-          </Button>
-        </Form.Item>
         <Form.Item>
           <Button
             type="dashed"
@@ -438,7 +440,7 @@ const PurchaseEntry: React.FC = () => {
                     setFileList(newFileList.slice(0, 4));
                     return;
                   }
-                  console.log(newFileList,'newFileList');
+                  console.log(newFileList, 'newFileList');
                   setFileList(newFileList);
 
                   // Save file URLs to form
@@ -493,7 +495,7 @@ const PurchaseEntry: React.FC = () => {
               name="quantity"
               rules={[{ required: true, message: "请输入数量" }]}
             >
-              <InputNumber parser={(value) => parseInt(value || '0', 10)}  min={1} max={99999} style={{ width: "100%" }} />
+              <InputNumber parser={(value) => parseInt(value || '0', 10)} min={1} max={99999} style={{ width: "100%" }} />
             </Form.Item>
             <Form.Item
               label="单位"

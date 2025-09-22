@@ -42,7 +42,8 @@ const ApplyConfirm: React.FC = () => {
       const params: any = {
         pageNum: page,
         pageSize: pageSize,
-        isAdmin: true
+        isAdmin: true,
+        isFixedAsset: 0
       };
 
       // Add filters if they exist

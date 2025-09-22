@@ -125,10 +125,18 @@ const ApplyConfirm: React.FC = () => {
         if (item.auditStatus == '0') {
           strName = '入库审批';
         } else if (item.auditStatus == '1') {
-          strName = '物品审核通过';
+          if(item.isFixedAsset === 1){
+            strName = '资产入库审批已通过';
+          } else {
+            strName = '低值易耗数据入库审批已通过';
+          }
           // }
         } else if (item.auditStatus == '2') {
-          strName = '物品审核被驳回';
+          if(item.isFixedAsset === 1){
+            strName = '资产入库审批被驳回';
+          } else {
+            strName = '低值易耗数据入库审批被驳回';
+          }
         }
       }
       // 如果item中存在applyNum值，那么有三种状态，0待审核，1通过，2驳回,3完成
@@ -244,7 +252,7 @@ const fetchData = async () => {
         let combinedData = [...(response.data.records || []), ...(response1.data.records || [])];
         // 需要过滤数据
         combinedData = combinedData.filter(item => {
-          return item.auditStatus ===0 || item.claimStatus === 0 || item.claimStatus === 1  || item.claimStatus === 4
+          return item.auditStatus === 0 || item.claimStatus === 0 || item.claimStatus === 1  || item.claimStatus === 4
         });
         // 根据某个字段排序，例如按id降序
         setListData(combinedData || []);
@@ -271,7 +279,7 @@ const visibleMenuItems = menuItems.filter(item => {
 });
 useEffect(() => {
   let hasVisibleItems = visibleMenuItems.some(item => {
-    return ['入库审批', '申领审批'].includes(item.name);
+    return item.name.includes('审批');
   });
   setIsAdmin(hasVisibleItems);
   if (!hasVisibleItems){
@@ -281,6 +289,9 @@ useEffect(() => {
 
 // 从listData生成进行中的事件数据
   const ongoingEvents = isAdmin?  listData: listData.filter(item =>{
+    if (currentUser?.userId || undefined === 1){
+      return true;
+    }
     return item.approvalUsername === currentUser?.name || item.applyUser === currentUser?.name;
   });
 
