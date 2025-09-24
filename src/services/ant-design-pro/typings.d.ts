@@ -12,6 +12,7 @@ declare namespace API {
     userId?: string;
     email?: string;
     signature?: string;
+    signName?: string;
     title?: string;
     group?: string;
     tags?: { key?: string; label?: string }[];

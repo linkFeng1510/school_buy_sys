@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { history } from '@umijs/max';
 import {
   Button,
   Form,
@@ -290,6 +291,13 @@ const PurchaseEntry: React.FC = () => {
       setLoading(prev => ({ ...prev, categories: false }));
     }
   };
+  const downloadTemplate = () => {
+    const url = '/api/stat/lowValueDownloadTemplate';
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '低值易耗品导入模板.xlsx';
+    link.click();
+  };
   return (
     <PageContainer>
       <Spin spinning={spinning} size="large" tip="订单创建中。。。" fullscreen={true} />
@@ -304,16 +312,38 @@ const PurchaseEntry: React.FC = () => {
           <Button
             type={"primary"}
             style={{ marginRight: 8 }}
-            onClick={() => setAddModalVisible(true)}
+            onClick={() => downloadTemplate()}
           >
             下载导入模板
           </Button>
-          <Button
-            type={"primary"}
-            onClick={() => setAddModalVisible(true)}
+          {/* 这是一个导入按钮，点击后可批量导入低值易耗品采购单 */}
+          {/* 还有其他参数 */}
+          <Upload
+            accept=".xls,.xlsx"
+            name="file"
+            data={{ applyUserId: initialState?.currentUser?.userId || '', applyUser: initialState?.currentUser?.name || '' }}
+            action="/api/stat/lowValueImport"
+            onChange={(info) => {
+              if (info.file.status !== 'uploading') {
+                console.log(info.file, info.fileList);
+              }
+              if (info.file.status === 'done') {
+                message.success(`${info.file.name} 导入成功`);
+                setTimeout(() => {
+                  history.push('/workbench/claim-record');
+                }, 1000);
+              } else if (info.file.status === 'error') {
+                message.error(`${info.file.name} 导入失败`);
+              }
+            }}
           >
-            导入数据
-          </Button>
+            <Button
+              type={"primary"}
+            >
+              导入数据
+            </Button>
+          </Upload>
+
         </Form.Item>
         {items.map((item, idx) => (
           <Card

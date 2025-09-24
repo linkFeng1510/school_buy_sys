@@ -92,12 +92,19 @@ export const errorConfig: RequestConfig = {
 
     (config: RequestOptions) => {
       // 加一个全局loading
+      console.log(config, 'config');
+      // 如果用户登录时间过期，则退出登录
+      if (localStorage.getItem('userInfo') && JSON.parse(localStorage.getItem('userInfo') || '{}').expireTime < new Date().getTime()) {
+        localStorage.removeItem('userInfo');
+        window.location.href = '/user/login';
+      }
+
       if (config.requestType !== 'form') {
         if (config.data && config.data.userId === undefined) {
-        console.log(config.data,'config.data');
           config.data = { ...config.data, userId: JSON.parse(localStorage.getItem('userInfo') || '{}').userId || '' };
         }
       }
+      localStorage.getItem('userInfo');
       message.loading('请求中...', 0);
       // 拦截请求配置，进行个性化处理。
       return { ...config };

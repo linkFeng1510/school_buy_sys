@@ -16,60 +16,61 @@ export const useHandleReview = () => {
   const { currentUser } = initialState || {};
   const handleReview = (modal: any, currOrder: ItemData) => {
     const onFinish = (values: any) => {
-      Modal.confirm({
-        title: '签名',
-        content: (
-          <SignName key={Math.random()} onConfirm={(imgUrl: any) => signNameUrl(imgUrl, values)} />
-        ),
-        footer: null,
-        closable: true,
-      });
-
-      // const currentUserId = currentUser?.userId || 0;
-      // let itemConfigs: {
-      //   // 商品ID
-      //   itemId: any;
-      //   // 是否固定资产. 0:否, 1:是
-      //   isFixedAsset: number;
-      //   // 是否上架不能为空. 0:未上架, 1:上架
-      //   isOnline: number;
-      //   // 上架数量
-      //   onlineQuantity: any;
-      // }[] = [];
-      // values.items.forEach((ii: {
-      //   itemId: any; id: any; isFixedAsset: any; isOnline: any; onlineQuantity: any;
-      // }) => {
-      //   itemConfigs.push({
-      //     // 商品ID
-      //     "itemId": ii.itemId,
-      //     // 是否固定资产. 0:否, 1:是
-      //     "isFixedAsset": ii.isFixedAsset ? 1 : 0,
-      //     // 是否上架不能为空. 0:未上架, 1:上架
-      //     "isOnline": ii.isOnline ? 1 : 0,
-      //     // 上架数量
-      //     "onlineQuantity": ii.onlineQuantity || 0
-      //   });
+      // Modal.confirm({
+      //   title: '签名',
+      //   content: (
+      //     <SignName key={Math.random()} onConfirm={(imgUrl: any) => signNameUrl(imgUrl, values)} />
+      //   ),
+      //   footer: null,
+      //   closable: true,
       // });
-      // const params = {
-      //   signatureImageUrl: '',
-      //   "userId": currentUserId,
-      //   "userName": currentUser?.name,
-      //   "orderId": currOrder.orderId,
-      //   "auditAction": 1,
-      //   itemConfigs: itemConfigs
-      // }
-      // commonUpdateStatusRequest({ data: params })
-      //   .then((response: any) => {
-      //     if (response.success) {
-      //       // 处理更新成功的逻辑
-      //       form.resetFields();
-      //       currOrder.updateList()
-      //       message.success('审核成功');
-      //       Modal.destroyAll();
-      //     }
-      //   }).catch((error: any) => {
-      //     console.error('更新失败:', error);
-      //   });
+
+      const currentUserId = currentUser?.userId || 0;
+      let itemConfigs: {
+        // 商品ID
+        itemId: any;
+        // 是否固定资产. 0:否, 1:是
+        isFixedAsset: number;
+        // 是否上架不能为空. 0:未上架, 1:上架
+        isOnline: number;
+        // 上架数量
+        onlineQuantity: any;
+      }[] = [];
+      values.items.forEach((ii: {
+        quantity: number;
+        itemId: any; id: any; isFixedAsset: any; isOnline: any; onlineQuantity: any;
+      }) => {
+        itemConfigs.push({
+          // 商品ID
+          "itemId": ii.itemId,
+          // 是否固定资产. 0:否, 1:是
+          "isFixedAsset": ii.isFixedAsset ? 1 : 0,
+          // 是否上架不能为空. 0:未上架, 1:上架
+          "isOnline": ii.isOnline ? 1 : 0,
+          // 上架数量
+          "onlineQuantity": ii.quantity || 0
+        });
+      });
+      const params = {
+        signatureImageUrl: currentUser?.signName,
+        "userId": currentUserId,
+        "userName": currentUser?.name,
+        "orderId": currOrder.orderId,
+        "auditAction": 1,
+        itemConfigs: itemConfigs
+      }
+      commonUpdateStatusRequest({ data: params })
+        .then((response: any) => {
+          if (response.success) {
+            // 处理更新成功的逻辑
+            form.resetFields();
+            currOrder.updateList()
+            message.success('审核成功');
+            Modal.destroyAll();
+          }
+        }).catch((error: any) => {
+          console.error('更新失败:', error);
+        });
     };
     const onRejectFinish = (values: any) => {
       const params = {

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Table, Input, Button, Modal, Form, Input as AntInput, message, Select, Radio } from 'antd';
+import { Table, Input, Button, Modal, Form, Input as AntInput, message, Select, Radio,Image } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { request, useModel } from 'umi';
+import { get } from 'lodash';
+import { sign } from 'crypto';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -13,6 +15,7 @@ interface User {
   username: string;
   initialPassword: string;
   name: string;
+  signatureImageUrl: string;
   phoneNumber: string;
   email: string;
   position: string;
@@ -22,6 +25,7 @@ interface User {
 
 interface Role {
   roleId: number;
+  signatureImageUrl: string;
   roleName: string;
   roleKey: string;
   status: string;
@@ -38,6 +42,7 @@ interface UserAddParams {
   roleIds: number[];
   remark?: string;
   status?: string;
+  signatureImageUrl?: string;
 }
 
 interface UserEditParams {
@@ -46,6 +51,7 @@ interface UserEditParams {
   name: string;
   email: string;
   phonenumber: string;
+  signatureImageUrl: string;
   position: string;
   roleIds: number[];
   status: string;
@@ -147,6 +153,7 @@ const UserManagement: React.FC = () => {
         name: item.name,
         phoneNumber: item.phoneNumber,
         email: item.email,
+        signatureImageUrl: item.signatureImageUrl,
         position: item.position,
         role: item.roles.map((r: any) => r.roleName).join(', '),
         status: item.status, // 假设'0'表示启用
@@ -260,12 +267,12 @@ const UserManagement: React.FC = () => {
       const role = roles.find(r => r.roleName === roleName);
       return role ? role.roleId : null;
     }).filter(id => id !== null) as number[];
-
     // Set form values for editing
     editForm.setFieldsValue({
       userId: record.id,
       username: record.username,
       name: record.name,
+      signatureImageUrl: record.signatureImageUrl,
       phoneNumber: record.phoneNumber,
       email: record.email,
       position: record.position,
@@ -288,6 +295,7 @@ const UserManagement: React.FC = () => {
         email: values.email,
         phonenumber: values.phoneNumber,
         position: values.position,
+        signatureImageUrl: values.signatureImageUrl || '',
         roleIds: Array.isArray(values.role) ? values.role : [values.role], // 处理多选情况
         status: values.status,
         remark: '编辑用户',
@@ -568,13 +576,16 @@ const UserManagement: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item
-            name="signName"
+          {/* <Form.Item
+            name="signatureImageUrl"
             label="签名"
             rules={[{ required: true, message: '请输入签名', max: 20 }]}
           >
-            <AntInput placeholder="请输入签名（20字以内）" maxLength={20} />
-          </Form.Item>
+            {({ getFieldValue })=> {
+              const signatureImageUrl = getFieldValue('signatureImageUrl');
+              return <img src={signatureImageUrl} alt="签名" />;
+            }}
+          </Form.Item> */}
         </Form>
       </Modal>
 
@@ -656,11 +667,26 @@ const UserManagement: React.FC = () => {
             </Select>
           </Form.Item>
           <Form.Item
-            name="signName"
+             shouldUpdate
             label="签名"
-            rules={[{ required: true, message: '请输入签名', max: 20 }]}
           >
-            <AntInput placeholder="请输入签名（20字以内）" maxLength={20} />
+            {({ getFieldValue }) => {
+              const signatureImageUrl = getFieldValue('signatureImageUrl');
+              console.log(signatureImageUrl,'signatureImageUrl');
+              // 这个图片可以删除，实现这个功能
+              return <div className="signature-preview" style={{ position: 'relative', display: 'flex', alignItems: 'center' ,flexDirection: 'row'}}>
+                <Image src={signatureImageUrl} />
+                {/* 删除图标 */}
+                <div className="delete-icon" style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }} onClick={() => {
+                  // 删除图片
+                  editForm.setFieldsValue({
+                    signatureImageUrl: null
+                  });
+                }}>
+                  <DeleteOutlined />
+                </div>
+              </div>
+            }}
           </Form.Item>
           <Form.Item
             name="status"

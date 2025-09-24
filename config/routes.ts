@@ -182,6 +182,13 @@ export default [
     component: './Welcome',
   },
   {
+    path: '/sign',
+    name: '签名',
+    layout: false,
+    icon: 'smile',
+    component: './Sign',
+  },
+  {
     path: '/',
     redirect: '/welcome',
   },

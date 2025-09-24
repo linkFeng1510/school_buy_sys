@@ -12,15 +12,31 @@ export const useHandleSign = () => {
     const { currentUser } = initialState || {};
 
   const handleSign = (modal: any, currOrder: ItemData) => {
-    const onFinish = (values: any) => {
-      Modal.confirm({
-        title: '确认签收',
-        content: (
-          <SignName key={Math.random()} onConfirm={(imgUrl: any) => signNameUrl(imgUrl)} />
-        ),
-        footer: null,
-        closable: true,
-      });
+    const onFinish = async (values: any) => {
+      // Modal.confirm({
+      //   title: '确认签收',
+      //   content: (
+      //     <SignName key={Math.random()} onConfirm={(imgUrl: any) => signNameUrl(imgUrl)} />
+      //   ),
+      //   footer: null,
+      //   closable: true,
+      // });
+      const params = {
+        userId: currentUser?.userId,
+        userName: currentUser?.name,
+        signatureImageUrl: currentUser?.signName,
+        orderId: currOrder.orderId,
+      };
+      const response = await request('/api/claim/receive', {
+        method: 'POST',
+        data: params
+      })
+      if (response.success) {
+        message.success('签收成功');
+        Modal.destroyAll();
+        currOrder.updateList()
+
+      }
     };
 
     const rejectHandler = () => {

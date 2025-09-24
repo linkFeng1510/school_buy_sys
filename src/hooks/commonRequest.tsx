@@ -26,3 +26,14 @@ export const productNumHandler = (item: any[],showPrice=true) => {
     {showPrice&&<Col ><Typography.Text strong> 共计￥{price}元</Typography.Text></Col>}
   </Row>
 };
+
+export const productNameHandler = (item: any) => {
+  let nameArr: any[] = []
+  if (item.items) {
+    item.items.forEach((child: { productName: any; fixedAssetName: any; })=>{
+      nameArr.push(child.productName || child.fixedAssetName)
+    })
+    return nameArr.join('、') || '暂无';
+  }
+  return '暂无';
+};

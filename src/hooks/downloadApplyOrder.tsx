@@ -2,15 +2,10 @@
 import { message } from 'antd';
 import { ItemData } from './commonHooks'; // 假设与 commonHooks.tsx 共享接口
 import { request } from '@umijs/max';
-
+import { productNameHandler } from './commonRequest';
 export const useDownloadApplyOrder = () => {
   const downloadApplyOrder = (modal: any, currOrder: ItemData) => {
-    const productNameHandler = (item: any) => {
-      if (item.items) {
-        return item.items.map((child: any) => child.productName).join('、') || '暂无';
-      }
-      return '暂无';
-    };
+
     const checkDownload = async () => {
       const response = await request(`/api/claim/checkDownload/${currOrder.orderId}`, {
         method: 'GET',

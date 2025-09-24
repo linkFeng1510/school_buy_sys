@@ -11,6 +11,7 @@ import { request, useModel } from 'umi';
 import ActionButton from '@/pages/workbench/components/ActionButton';
 import StatusTxt from '@/pages/workbench/components/StatusTxt';
 import routes from '../../config/routes';
+import { productNameHandler } from '@/hooks/commonRequest';
 
 // 假设当前用户角色（实际应从登录信息获取）
 
@@ -48,7 +49,6 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
   // 获取图标，如果没有匹配则使用默认图标
   const getIcon = () => {
     const icon = iconMap[item.name];
-    console.log(item.name,'item.name');
     return icon ? icon : <AppstoreOutlined />;
   };
 
@@ -98,16 +98,6 @@ const ApplyConfirm: React.FC = () => {
   })
   const [childrenList, setChildrenList] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(true);
-  const productNameHandler = (item: any) => {
-    if (isProduct) {
-      return item.productName;
-    } else {
-      if (item.items) {
-        return item.items.map((child: any) => child.productName).join('、') || '暂无';
-      }
-      return '暂无';
-    }
-  };
   const eventName = (item: any) => {
     let strName = '';
     if (isProduct) {

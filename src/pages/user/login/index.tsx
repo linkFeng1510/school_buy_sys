@@ -14,6 +14,7 @@ import {
 } from '@ant-design/pro-components';
 import {
   Helmet,
+  history,
   useModel,
 } from '@umijs/max';
 import { Alert, App, Tabs } from 'antd';
@@ -122,8 +123,13 @@ const Login: React.FC = () => {
             position: mydata!.position,
           },
         });
-        mydata = { ...mydata, ...result.data?.records[0]|| {} };
+        const currUserDetails = result.data?.records[0] || {};
+        mydata = { ...mydata, ...currUserDetails || {}, signName: currUserDetails.signatureImageUrl, expireTime:new Date().getTime() + 1000 * 60 * 60*12, };
         localStorage.userInfo = JSON.stringify(mydata);
+        if (!mydata!.signName) {
+          history.push('/sign');
+          return;
+        }
         // 设置初始状态
         flushSync(() => {
           setInitialState((s) => ({

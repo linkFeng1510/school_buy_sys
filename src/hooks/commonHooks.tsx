@@ -134,18 +134,20 @@ export const useStatusActions = (item: ItemData, isAdmin: boolean = false, isPro
         });
       }
       if (item.itemStatus === 0) {
+        //     ,
+        // {
+        //   key: "修改上架数量",
+        //   label: "修改上架数量",
+        //   type: "primary",
+        //   onClick: () => handleShelf(modal, item),
+        //       }
         actions.push({
           key: "下架",
           label: "下架",
           type: "primary",
           onClick: () => handleOffline(modal, item, false),
-        },
-          {
-            key: "修改上架数量",
-            label: "修改上架数量",
-            type: "primary",
-            onClick: () => handleShelf(modal, item),
-          });
+        }
+        );
       }
       return actions;
     }

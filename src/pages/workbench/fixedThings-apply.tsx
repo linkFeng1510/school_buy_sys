@@ -20,7 +20,7 @@ interface GoodsItem {
   itemId: number | null | undefined;
   purchasePrice: ReactNode;
   coverImageUrl: string;
-  productName: any;
+  fixedAssetName: any;
   id: number;
   spec: string;
   price: number;
@@ -30,16 +30,18 @@ interface GoodsItem {
 
 const ApplyRecord: React.FC = () => {
   const [form] = Form.useForm();
+  const [locationForm] = Form.useForm();
   const [search, setSearch] = useState('');
   const [goods, setGoods] = useState<GoodsItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState<any[]>([]);
   const [addModal, setAddModal] = useState(false);
   const [addItem, setAddItem] = useState<any>(null);
-  const [addNum, setAddNum] = useState<number>(1);
+  const [addNum, setAddNum] = useState<number>(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { initialState } = useModel('@@initialState');
   const { currentUser } = initialState || {};
+  const [addLocation, setAddLocation] = useState<string>('');
   // Fetch goods data from API
   useEffect(() => {
     fetchGoods();
@@ -52,7 +54,9 @@ const ApplyRecord: React.FC = () => {
         method: 'POST',
         data: {
           isAdmin: true,
+          isFixedAsset: 1,
           pageNum: 1,
+          itemStatus: 0,
           pageSize: 1000,
           itemName: search || '',
         }
@@ -62,6 +66,7 @@ const ApplyRecord: React.FC = () => {
       const items = result.data?.records || [];
       // 过滤掉可申领数量小于等于0的物品
       const currGoods = items.filter((item: { onlineQuantity: number }) => item.onlineQuantity > 0);
+      console.log(currGoods,'currGoods');
       setGoods(currGoods);
     } catch (error) {
       message.error('获取物品列表失败');
@@ -71,14 +76,21 @@ const ApplyRecord: React.FC = () => {
   };
 
   // 搜索过滤
-  const filteredGoods = goods.filter(g => g.productName.includes(search));
+  const filteredGoods = goods.filter(g => g.fixedAssetName&& g.fixedAssetName.includes(search));
 
   // 加入申领车
   const handleAdd = (item: any) => {
     setAddItem(item);
-    setAddNum(1);
+    setAddNum(0);
     setAddModal(true);
   };
+  const cancelAdd = () => {
+    setAddModal(false);
+    setAddItem(null);
+    setAddNum(0);
+    setAddLocation('');
+    locationForm.resetFields();
+  }
   const handleAddConfirm = () => {
     if (!addNum || addNum < 1) {
       message.warning('请输入正确的数量');
@@ -91,12 +103,14 @@ const ApplyRecord: React.FC = () => {
     const exist = cart.find((c) => c.itemId === addItem.itemId);
     let newCart;
     if (exist) {
-      newCart = cart.map(c => c.itemId === addItem.itemId ? { ...c, num: c.num + addNum } : c);
+      newCart = cart.map(c => c.itemId === addItem.itemId ? { ...c, num: c.num + addNum, location: addLocation } : c);
     } else {
-      newCart = [...cart, { ...addItem, num: addNum }];
+      newCart = [...cart, { ...addItem, num: addNum, location: addLocation }];
     }
     setCart(newCart);
     setAddModal(false);
+    setAddNum(0);
+    setAddLocation('');
     message.success('已加入申领车');
   };
 
@@ -120,6 +134,7 @@ const ApplyRecord: React.FC = () => {
     const items = cart.map(curr => {
       return {
         "itemId": curr.itemId,
+        "isFixedAsset": curr.isFixedAsset ? 1 : 0,
         "claimQuantity": curr.num
       }
     })
@@ -207,26 +222,17 @@ const ApplyRecord: React.FC = () => {
       {/* 加入申领车弹窗 */}
       <Modal
         open={addModal}
+        footer={null}
         onCancel={() => setAddModal(false)}
-        onOk={handleAddConfirm}
-        okText="确认加入"
-        cancelText="取消"
         centered
-        destroyOnClose
       >
         {addItem && (
-          <div style={{ display: 'flex', alignItems: 'center', padding: 16 }}>
-            <div style={{ width: 60, height: 60, background: '#f5f5f5', borderRadius: 8, marginRight: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src={`${addItem.coverImageUrl}`} alt="物品" style={{ width: 48, height: 48 }} />
-            </div>
-            <div style={{ flex: 1, fontSize: 12, color: '#999' }}>
-              <div style={{ fontWeight: 500, color: '#111' }}>{addItem.productName}</div>
-              <div>规格:{addItem.spec || '无'}</div>
-              <div>单价:¥{addItem.price || 0}元/{addItem.unit || '件'}</div>
-              <div>品牌：{(addItem.brandName) || '无'}</div>
-              <div>供应商：{(addItem.supplierName) || '无'}</div>
-              <div>可申领数量:{addItem.onlineQuantity || 0}</div>
-              <div style={{ marginTop: 8 }}>
+          <>
+            <Form layout="vertical" form={locationForm} >
+              <Form.Item label="">
+                <ProductItem detail={addItem} hideTotal={true} isProduct={true} />
+              </Form.Item>
+              <Form.Item label="申领数量" style={{ margin: '8px 0' }} rules={[{ required: true, message: '请输入申领数量' }]}>
                 <InputNumber
                   parser={(value) => parseInt(value || '0', 10)}
                   min={1}
@@ -236,10 +242,33 @@ const ApplyRecord: React.FC = () => {
                   style={{ width: 160 }}
                   placeholder="请输入申领数量"
                 />
-              </div>
-            </div>
 
-          </div>
+              </Form.Item>
+              <Form.Item label="存放地点" rules={[{ required: true, message: '请输入存放地点' }]}>
+                <Input
+                  value={addLocation}
+                  onChange={v => setAddLocation(v.target.value)}
+                  style={{ width: 160 }}
+                  placeholder="请输入存放地点"
+                />
+
+              </Form.Item>
+              <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
+                <Button
+                  type="primary"
+                  style={{ marginRight: 8 }}
+                  onClick={handleAddConfirm}
+                >
+                  确认加入
+                </Button>
+                <Button
+                  onClick={cancelAdd}
+                >
+                  取消
+                </Button>
+              </Form.Item>
+            </Form>
+          </>
         )}
       </Modal>
 
@@ -279,13 +308,22 @@ const ApplyRecord: React.FC = () => {
                   avatar={<div style={{ width: 60, height: 60, background: '#f5f5f5', borderRadius: 8, marginRight: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <img src={`${addItem.coverImageUrl}`} alt="物品" style={{ width: 48, height: 48 }} />
                   </div>}
-                  title={`${item.brandName}${item.productName}${item.spec}`}
+                  title={<div>
+                    <div>{item.fixedAssetName}</div>
+                    <div>{item.brandName}</div>
+                    <div>{item.supplierName}</div>
+                    <div>{item.spec}</div>
+                  </div>}
                   description={
                     <div>
-                      <div>单价:{item.unit}  单价：{item.price}元 </div>
+                      <div>单价：{item.price}元/{item.unit} </div>
                       <div>
                         库存数量:{item.onlineQuantity}
                       </div>
+                      <div>
+                        存放地点:{item.location}
+                      </div>
+
                     </div>
                   }
                 />

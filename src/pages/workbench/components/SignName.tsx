@@ -1,11 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Button, Card, message } from 'antd';
+import { useModel } from '@umijs/max';
 
 interface SignNameProps {
   onConfirm: (dataURL: any) => void;
 }
 
 const SignatureButton: React.FC<SignNameProps> = ({ onConfirm }) => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const isDrawing = useRef<boolean>(false);
@@ -76,9 +79,8 @@ const SignatureButton: React.FC<SignNameProps> = ({ onConfirm }) => {
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-
     if (!isDrawing.current || !contextRef.current) return;
-    setIsPainted(true)
+    setIsPainted(true);
     const { offsetX, offsetY } = getCoordinates(e);
     contextRef.current.lineTo(offsetX, offsetY);
     contextRef.current.stroke();
@@ -132,12 +134,38 @@ const SignatureButton: React.FC<SignNameProps> = ({ onConfirm }) => {
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
         />
+        {/* 提示文字 */}
+        {currentUser?.name && (
+          // 文字要有一点间隔
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              color: '#ccc',
+              pointerEvents: 'none',
+              fontSize: '90px',
+              paddingLeft: '10px',
+              letterSpacing: '5px',
+              width: '100%',
+              textAlign: 'center',
+              fontWeight: 'bold',
+              opacity: 0.5,
+              userSelect: 'none'
+            }}
+          >
+            {currentUser.name}
+          </div>
+        )}
       </div>
       <div style={{ marginTop: 16, textAlign: 'center' }}>
         <Button type="primary" onClick={saveSignature} style={{ marginRight: 8 }}>
           保存签名
         </Button>
-        <Button onClick={clearCanvas}>清空</Button>
+        <Button onClick={clearCanvas}>
+          清空
+        </Button>
       </div>
     </Card>
   );

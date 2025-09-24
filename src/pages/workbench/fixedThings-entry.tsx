@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { history } from '@umijs/max';
 import {
   Button,
   Form,
@@ -66,13 +67,12 @@ const FixedThingsEntry: React.FC = () => {
   const [fileList, setFileList] = useState<any[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [spinning, setSpinning] = React.useState(false);
-  const [categories, setCategories] = useState<Option[]>([{ categoryName: "无", id: 0 }]);
+  const [categories, setCategories] = useState<Option[]>([{ fixedAssetName: "无", fixedAssetId: 0 }]);
   const [users, setUsers] = useState<User[]>([]);
-  const [formValues, setFormValues] = useState<any>({});
   const { initialState } = useModel('@@initialState');
   interface Option {
-    id: number;
-    categoryName: string;
+    fixedAssetId: number;
+    fixedAssetName: string;
     children?: Option[];
   }
   const [loading, setLoading] = useState({
@@ -112,7 +112,7 @@ const FixedThingsEntry: React.FC = () => {
   //     return urlSrc
   //     // 处理上传成功的逻辑
   //   }).then(async (urlSrc) => {
-  //     // 调用接口 / api / purchaseitem / add，post请求，form - data格式，字段分别是productName是商品名称，spec是规格，brandName是品牌，categoryLevel1Id是一级类目 ID，categoryLevel2Id是二级类目 ID，unit是单位，supplierName是供应商名称，purchaseType是采购类型（1 = 直采，2 = 定向采购），purchaseQuantity是采购数量，purchasePrice是采购单价，applicantName定向采购时必填（purchaseType = 2 时），applyDepartment申请部门（可为空），images是对应的图片资源，userId是用户ID
+  //     // 调用接口 / api / purchaseitem / add，post请求，form - data格式，字段分别是fixedAssetName是商品名称，spec是规格，brandName是品牌，fixedAssetIdLevel1Id是一级类目 ID，fixedAssetIdLevel2Id是二级类目 ID，unit是单位，supplierName是供应商名称，purchaseType是采购类型（1 = 直采，2 = 定向采购），purchaseQuantity是采购数量，purchasePrice是采购单价，applicantName定向采购时必填（purchaseType = 2 时），applyDepartment申请部门（可为空），images是对应的图片资源，userId是用户ID
   //     const userId = initialState?.currentUser?.userId || ''
   //     const userName = initialState?.currentUser?.name || ''
   //     const formData = new FormData();
@@ -123,11 +123,11 @@ const FixedThingsEntry: React.FC = () => {
   //     formData.append('applyUserId', formValues.applyUser || userId || '');
   //     items.map((item, index) => {
   //       console.log(item,'item');
-  //       formData.append(`items[${index}].productName`, item.name);
+  //       formData.append(`items[${index}].fixedAssetName`, item.name);
   //       formData.append(`items[${index}].spec`, item.spec);
   //       formData.append(`items[${index}].brandName`, item.brand);
-  //       formData.append(`items[${index}].categoryLevel1Id`, item.category[0]);
-  //       formData.append(`items[${index}].categoryLevel2Id`, item.category[1]);
+  //       formData.append(`items[${index}].fixedAssetIdLevel1Id`, item.fixedAssetId[0]);
+  //       formData.append(`items[${index}].fixedAssetIdLevel2Id`, item.fixedAssetId[1]);
   //       formData.append(`items[${index}].unit`, item.unit);
   //       formData.append(`items[${index}].quantity`, item.quantity);
   //       formData.append(`items[${index}].price`, item.price);
@@ -202,7 +202,7 @@ const FixedThingsEntry: React.FC = () => {
     }
     //校验必填项
     // setShowModal(true);
-    // 调用接口 / api / purchaseitem / add，post请求，form - data格式，字段分别是productName是商品名称，spec是规格，brandName是品牌，categoryLevel1Id是一级类目 ID，categoryLevel2Id是二级类目 ID，unit是单位，supplierName是供应商名称，purchaseType是采购类型（1 = 直采，2 = 定向采购），purchaseQuantity是采购数量，purchasePrice是采购单价，applicantName定向采购时必填（purchaseType = 2 时），applyDepartment申请部门（可为空），images是对应的图片资源，userId是用户ID
+    // 调用接口 / api / purchaseitem / add，post请求，form - data格式，字段分别是fixedAssetName是商品名称，spec是规格，brandName是品牌，fixedAssetIdLevel1Id是一级类目 ID，fixedAssetIdLevel2Id是二级类目 ID，unit是单位，supplierName是供应商名称，purchaseType是采购类型（1 = 直采，2 = 定向采购），purchaseQuantity是采购数量，purchasePrice是采购单价，applicantName定向采购时必填（purchaseType = 2 时），applyDepartment申请部门（可为空），images是对应的图片资源，userId是用户ID
     const userId = initialState?.currentUser?.userId || ''
     const userName = initialState?.currentUser?.name || ''
     const formData = new FormData();
@@ -212,12 +212,12 @@ const FixedThingsEntry: React.FC = () => {
     formData.append('purchaseType', values.purchaseType || '');
     formData.append('applyUserId', values.applyUser || userId || '');
     items.map((item, index) => {
-      console.log(item, 'item');
-      formData.append(`items[${index}].productName`, item.name);
+      const fixedAssetName = categories.find(cat => cat.fixedAssetId === item.fixedAssetId)?.fixedAssetName || '';
+      formData.append(`items[${index}].fixedAssetName`, item.name);
       formData.append(`items[${index}].spec`, item.spec);
       formData.append(`items[${index}].brandName`, item.brand);
-      formData.append(`items[${index}].categoryLevel1Id`, item.category[0]);
-      formData.append(`items[${index}].categoryLevel2Id`, item.category[1]);
+      formData.append(`items[${index}].fixedAssetId`, item.fixedAssetId || '');
+      formData.append(`items[${index}].fixedAssetName`, fixedAssetName);
       formData.append(`items[${index}].unit`, item.unit);
       formData.append(`items[${index}].isFixedAsset`, '1');// 固定资产
       formData.append(`items[${index}].quantity`, item.quantity);
@@ -280,15 +280,21 @@ const FixedThingsEntry: React.FC = () => {
   const fetchCategories = async () => {
     setLoading(prev => ({ ...prev, categories: true }));
     try {
-      const response = await request('/api/category/tree');
-      const dataList = response.data.categories;
-      console.log(dataList, 'dataList');
+      const response = await request('/api/purchaseitem/fixedAsset');
+      const dataList = response.data;
       setCategories(dataList);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     } finally {
       setLoading(prev => ({ ...prev, categories: false }));
     }
+  };
+  const downloadTemplate = () => {
+    const url = '/api/stat/fixedAssetDownloadTemplate';
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '资产导入模板.xlsx';
+    link.click();
   };
   return (
     <PageContainer>
@@ -304,16 +310,35 @@ const FixedThingsEntry: React.FC = () => {
           <Button
             type={"primary"}
             style={{ marginRight: 8 }}
-            onClick={() => setAddModalVisible(true)}
+            onClick={() => downloadTemplate()}
           >
             下载导入模板
           </Button>
-          <Button
-            type={"primary"}
-            onClick={() => setAddModalVisible(true)}
+          <Upload
+            accept=".xls,.xlsx"
+            name="file"
+            data={{ applyUserId: initialState?.currentUser?.userId || '', applyUser: initialState?.currentUser?.name || '' }}
+            action="/api/stat/fixedAssetImport"
+            onChange={(info) => {
+              if (info.file.status !== 'uploading') {
+                console.log(info.file, info.fileList);
+              }
+              if (info.file.status === 'done') {
+                message.success(`${info.file.name} 导入成功`);
+                setTimeout(() => {
+                  history.push('/workbench/claim-record');
+                }, 1000);
+              } else if (info.file.status === 'error') {
+                message.error(`${info.file.name} 导入失败`);
+              }
+            }}
           >
-            导入数据
-          </Button>
+            <Button
+              type={"primary"}
+            >
+              导入数据
+            </Button>
+          </Upload>
         </Form.Item>
         {items.map((item, idx) => (
           <Card
@@ -440,7 +465,6 @@ const FixedThingsEntry: React.FC = () => {
                     setFileList(newFileList.slice(0, 4));
                     return;
                   }
-                  console.log(newFileList, 'newFileList');
                   setFileList(newFileList);
 
                   // Save file URLs to form
@@ -482,13 +506,16 @@ const FixedThingsEntry: React.FC = () => {
             <Form.Item label="供应商名称" name="supplierName">
               <Input maxLength={20} placeholder="请输入供应商名称" />
             </Form.Item>
-            <Form.Item label="商品分类" name="category" >
-              <Cascader
-                options={categories}
-                fieldNames={{ label: 'categoryName', value: 'id', children: 'children' }}
+            <Form.Item label="商品分类" name="fixedAssetId" >
+              <Select
                 placeholder="请选择商品分类"
-                loading={loading.categories}
-              />
+              >
+                {categories.map(unit => (
+                  <Option key={unit.fixedAssetId} value={unit.fixedAssetId}>
+                    {unit.fixedAssetName}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
             <Form.Item
               label="数量"

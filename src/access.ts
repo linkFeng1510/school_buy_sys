@@ -6,7 +6,6 @@ export default function access(initialState: { currentUser?: API.CurrentUser | u
   currentUser?.menus?.forEach(item => {
     allMenu.push(item, ...(item.childrenList || []));
   });
-  console.log(allMenu,'allMenu');
   // Create a Set for O(1) lookup performance
   const nameSet = new Set(allMenu.map(item => item.menuName));
   // Permission mappings based on route names in routes.ts

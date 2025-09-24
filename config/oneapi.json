@@ -323,6 +323,9 @@
           "group": {
             "type": "string"
           },
+          "signName": {
+            "type": "string"
+          },
           "tags": {
             "type": "array",
             "items": {

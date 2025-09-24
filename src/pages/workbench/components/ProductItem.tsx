@@ -1,6 +1,6 @@
 import { useStatusActions } from "@/hooks/commonHooks";
 import { Card, Col, Flex, Row, Typography, Modal, List, Tag } from "antd";
-import { productNumHandler } from '@/hooks/commonRequest';
+import { productNameHandler, productNumHandler } from '@/hooks/commonRequest';
 import { useState } from "react";
 import ProductItem from "@/components/commonListItem";
 
@@ -12,16 +12,6 @@ const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: b
   const [visible, setVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const isApply = currOrder.auditStatus !== undefined;
-  const productNameHandler = (currOrder: any) => {
-    if (isProduct) {
-      return currOrder.productName;
-    } else {
-      if (currOrder.items) {
-        return currOrder.items.map((child: any) => child.productName).join('、') || '暂无';
-      }
-      return '暂无';
-    }
-  };
 
   const productMoneyHandler = (currOrder: any) => {
     if (isProduct) {
@@ -90,7 +80,7 @@ const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: b
             }
             <Col style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '-webkit-fill-available', maxHeight: 200 }}>
               <div >{renderStatusTag()}</div>
-             {isProduct&& <div ><Tag color="blue" style={{ margin: 0 }}>{currOrder.isFixedAsset === 1 ? '资产' : '低值易耗品'}</Tag></div>}
+             {/* <div ><Tag color="blue" style={{ margin: 0 }}>{currOrder.isFixedAsset === 1 ? '资产' : '低值易耗品'}</Tag></div> */}
               <div onClick={handleActionClick}>{renderActionButtons()}</div>
             </Col>
           </>

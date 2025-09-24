@@ -75,7 +75,7 @@ const ApplyRecord: React.FC = () => {
   };
 
   // 搜索过滤
-  const filteredGoods = goods.filter(g => g.productName.includes(search));
+  const filteredGoods = goods.filter(g => g.productName&&g.productName.includes(search));
 
   // 加入申领车
   const handleAdd = (item: any) => {

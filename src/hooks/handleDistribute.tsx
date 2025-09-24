@@ -96,8 +96,9 @@ export const useHandleDistribute = () => {
               }
               request('/api/claim/distribute', { method: 'POST', data: params }).then(() => {
                 form.resetFields();
-                Modal.destroyAll();
                 message.success('分发成功');
+                Modal.destroyAll();
+
                 currOrder.updateList()
               });
             }).catch(error => {
