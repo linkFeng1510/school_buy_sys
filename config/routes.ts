@@ -12,189 +12,187 @@
  */
 export default [
   {
-    path: '/user',
+    path: "/user",
     layout: false,
     routes: [
       {
-        name: 'login',
-        path: '/user/login',
-        component: './user/login',
+        name: "login",
+        path: "/user/login",
+        component: "./user/login",
       },
     ],
   },
   {
-    path: '/workbench',
-    name: '工作台',
-    access: 'workbench',
-    icon: 'dashboard',
-    routes: [
-
-      {
-        path: '/workbench/purchase-entry',
-        name: '低值易耗数据录入',
-        access: 'workbench:purchase-entry',
-        component: './workbench/purchase-entry',
-      },
-      {
-        path: '/workbench/fixedThings-entry',
-        name: '资产数据录入',
-        access: 'workbench:fixedThings-entry',
-        component: './workbench/fixedThings-entry',
-      },
-      {
-        path: '/workbench/claim-record',
-        name: '数据录入记录',
-        component: './workbench/claim-record',
-        access: 'workbench:claim-record'
-      },
-      {
-        path: '/workbench/stock-entry',
-        name: '低值易耗品入库审批',
-        component: './workbench/stock-entry',
-        access: 'workbench:stock-entry'
-      },
-      {
-        path: '/workbench/fixedThings-stock-entry',
-        name: '资产入库审批',
-        component: './workbench/fixedThings-stock-entry',
-        access: 'workbench:thingsStock-entry'
-      },
-      {
-        path: '/workbench/stock-batch',
-        name: '入库审批记录',
-        component: './workbench/stock-batch',
-        access: 'workbench:stock-batch'
-      },
-      {
-        path: '/workbench/claim',
-        name: '低值易耗品管理',
-        component: './workbench/claim',
-        access: 'workbench:claim'
-      },
-      {
-        path: '/workbench/fixedThings-claim',
-        name: '资产管理',
-        component: './workbench/fixedThings-claim',
-        access: 'workbench:fixedThings-claim'
-      },
-      {
-        path: '/workbench/apply-record',
-        name: '低值易耗品申领',
-        component: './workbench/apply-record',
-        access: 'workbench:purchase-apply'
-      },
-      {
-        path: '/workbench/fixedThings-apply',
-        name: '资产申领',
-        component: './workbench/fixedThings-apply',
-        access: 'workbench:fixedThings-apply'
-      },
-      {
-        path: '/workbench/apply-confirm',
-        name: '低值易耗品申领审批',
-        component: './workbench/apply-confirm',
-        access: 'workbench:apply-confirm'
-      },
-      {
-        path: '/workbench/fixedThings-apply-confirm',
-        name: '资产申领审批',
-        component: './workbench/fixedThings-apply-confirm',
-        access: 'workbench:fixedThings-confirm'
-      },
-      {
-        path: '/workbench/purchase-record',
-        name: '物品申领记录',
-        component: './workbench/purchase-record',
-        access: 'workbench:purchase-record'
-      },
-
-    ],
-  },
-  {
-    path: '/base',
-    name: '基础管理',
-    access: 'base',
-    icon: 'setting',
+    path: "/workbench",
+    name: "工作台",
+    access: "workbench",
+    icon: "dashboard",
     routes: [
       {
-        path: '/base/role',
-        name: '角色管理',
-        component: './base/role',
-        access: 'base:role'
+        path: "/workbench/purchase-entry",
+        name: "低值易耗数据录入",
+        access: "workbench:purchase-entry",
+        component: "./workbench/purchase-entry",
       },
       {
-        path: '/base/user',
-        name: '用户管理',
-        component: './base/user',
-        access: 'base:user'
+        path: "/workbench/fixedThings-entry",
+        name: "资产数据录入",
+        access: "workbench:fixedThings-entry",
+        component: "./workbench/fixedThings-entry",
       },
       {
-        path: '/base/log',
-        name: '操作日志',
-        component: './base/log',
-        access: 'base:log'
+        path: "/workbench/claim-record",
+        name: "数据录入记录",
+        component: "./workbench/claim-record",
+        access: "workbench:claim-record",
+      },
+      {
+        path: "/workbench/stock-entry",
+        name: "低值易耗品入库审批",
+        component: "./workbench/stock-entry",
+        access: "workbench:stock-entry",
+      },
+      {
+        path: "/workbench/fixedThings-stock-entry",
+        name: "资产入库审批",
+        component: "./workbench/fixedThings-stock-entry",
+        access: "workbench:thingsStock-entry",
+      },
+      {
+        path: "/workbench/stock-batch",
+        name: "入库审批记录",
+        component: "./workbench/stock-batch",
+        access: "workbench:stock-batch",
+      },
+      {
+        path: "/workbench/claim",
+        name: "低值易耗品管理",
+        component: "./workbench/claim",
+        access: "workbench:claim",
+      },
+      {
+        path: "/workbench/fixedThings-claim",
+        name: "资产管理",
+        component: "./workbench/fixedThings-claim",
+        access: "workbench:fixedThings-claim",
+      },
+      {
+        path: "/workbench/apply-record",
+        name: "低值易耗品申领",
+        component: "./workbench/apply-record",
+        access: "workbench:purchase-apply",
+      },
+      {
+        path: "/workbench/fixedThings-apply",
+        name: "资产申领",
+        component: "./workbench/fixedThings-apply",
+        access: "workbench:fixedThings-apply",
+      },
+      {
+        path: "/workbench/apply-confirm",
+        name: "低值易耗品申领审批",
+        component: "./workbench/apply-confirm",
+        access: "workbench:apply-confirm",
+      },
+      {
+        path: "/workbench/fixedThings-apply-confirm",
+        name: "资产申领审批",
+        component: "./workbench/fixedThings-apply-confirm",
+        access: "workbench:fixedThings-confirm",
+      },
+      {
+        path: "/workbench/purchase-record",
+        name: "物品申领记录",
+        component: "./workbench/purchase-record",
+        access: "workbench:purchase-record",
       },
     ],
   },
   {
-    path: '/finance',
-    name: '财务管理',
-    access: 'finance',
-    icon: 'moneyCollect',
+    path: "/base",
+    name: "基础管理",
+    access: "base",
+    icon: "setting",
+    routes: [
+      {
+        path: "/base/role",
+        name: "角色管理",
+        component: "./base/role",
+        access: "base:role",
+      },
+      {
+        path: "/base/user",
+        name: "用户管理",
+        component: "./base/user",
+        access: "base:user",
+      },
+      {
+        path: "/base/log",
+        name: "操作日志",
+        component: "./base/log",
+        access: "base:log",
+      },
+    ],
+  },
+  {
+    path: "/finance",
+    name: "财务管理",
+    access: "finance",
+    icon: "moneyCollect",
     // 重定向
     routes: [
       {
-        path: '/finance/data-overview',
-        name: '低值易耗品盘存',
-        component: './finance/data-overview',
-        access: 'finance:data-overview'
+        path: "/finance/data-overview",
+        name: "低值易耗品盘存",
+        component: "./finance/data-overview",
+        access: "finance:data-overview",
       },
       {
-        path: '/finance/claim-stat',
-        name: '低值耗材入库数据统计',
-        component: './finance/claim-stat',
-        access: 'finance:claim-stat'
+        path: "/finance/claim-stat",
+        name: "低值耗材入库数据统计",
+        component: "./finance/claim-stat",
+        access: "finance:claim-stat",
       },
       {
-        path: '/finance/purchase-stat',
-        name: '低值耗材出库数据统计',
-        component: './finance/purchase-stat',
-        access: 'finance:purchase-stat'
+        path: "/finance/purchase-stat",
+        name: "低值耗材出库数据统计",
+        component: "./finance/purchase-stat",
+        access: "finance:purchase-stat",
       },
       {
-        path: '/finance/thingsStock-stat',
-        name: '资产入库统计',
-        component: './finance/purchase-stat',
-        access: 'finance:thingsStock-stat'
+        path: "/finance/thingsStock-stat",
+        name: "资产入库统计",
+        component: "./finance/purchase-stat",
+        access: "finance:thingsStock-stat",
       },
       {
-        path: '/finance/thingsStock-out-stat',
-        name: '资产出库统计',
-        component: './finance/purchase-stat',
-        access: 'finance:thingsStock-out-stat'
+        path: "/finance/thingsStock-out-stat",
+        name: "资产出库统计",
+        component: "./finance/purchase-stat",
+        access: "finance:thingsStock-out-stat",
       },
     ],
   },
   {
-    path: '/welcome',
-    name: '首页',
-    icon: 'smile',
-    component: './Welcome',
+    path: "/welcome",
+    name: "首页",
+    icon: "smile",
+    component: "./Welcome",
   },
   {
-    path: '/sign',
-    name: '签名',
+    path: "/sign",
+    name: "签名",
     layout: false,
-    icon: 'smile',
-    component: './Sign',
+    icon: "smile",
+    component: "./Sign",
   },
   {
-    path: '/',
-    redirect: '/welcome',
+    path: "/",
+    redirect: "/welcome",
   },
   {
-    path: '*',
+    path: "*",
     layout: false,
-    component: './404',
+    component: "./404",
   },
 ];

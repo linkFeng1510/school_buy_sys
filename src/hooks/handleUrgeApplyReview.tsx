@@ -1,8 +1,7 @@
-
-import { Modal, Button, message, Radio } from 'antd';
-import { ItemData } from './commonHooks';
-import { useEffect, useState } from 'react'; // Fixed import: removed duplicate 'use'
-import { request } from '@umijs/max';
+import { request } from "@umijs/max";
+import { message, Radio } from "antd";
+import { useState } from "react"; // Fixed import: removed duplicate 'use'
+import { ItemData } from "./commonHooks";
 
 // Define proper types for user data
 interface UserRole {
@@ -17,14 +16,17 @@ interface User {
 
 export const useHandleUrgeApplyReview = () => {
   const [users, setUsers] = useState<User[]>([]); // Typed state
-  const fetchUsers = async () => {
+  const fetchUsers = async (item: any) => {
+    const isFixedAsset = item.items.some((ii: { isFixedAsset: number }) => {
+      return ii.isFixedAsset === 1;
+    });
     try {
-      const response = await request('/api/user/list', {
-        method: 'POST',
+      const response = await request("/api/user/list", {
+        method: "POST",
         data: {
           pageNum: 1,
           pageSize: 100,
-          status: '1',
+          status: "1",
         },
       });
 
@@ -33,8 +35,14 @@ export const useHandleUrgeApplyReview = () => {
       const filteredUsers: User[] = [];
       userList.forEach((userItem: User) => {
         userItem.roles.forEach((role) => {
-          if (role.roleId === 2 || role.roleName === '库管') {
-            filteredUsers.push(userItem);
+          if (role.roleId === 2 || role.roleName.includes("库管")) {
+            console.log(item, "itemitemitem");
+            if (isFixedAsset && role.roleName.includes("资产")) {
+              filteredUsers.push(userItem);
+            }
+            if (!isFixedAsset && role.roleName.includes("低值")) {
+              filteredUsers.push(userItem);
+            }
           }
         });
       });
@@ -42,7 +50,7 @@ export const useHandleUrgeApplyReview = () => {
       // Create options before setting state
       const options = filteredUsers.map((user: any) => ({
         value: user.userId,
-        label: `库管：${user.name} ${user.phoneNumber}`,
+        label: `${user.name}: ${user.phoneNumber}`,
       }));
       setUsers(filteredUsers);
       // Return options for immediate use
@@ -53,19 +61,16 @@ export const useHandleUrgeApplyReview = () => {
   };
 
   const handleUrgeApplyReview = async (modal: any, item: ItemData) => {
-    const options = await fetchUsers();
+    const options = await fetchUsers(item);
     const config = {
-      title: '催审核',
+      title: "催审核",
       content: (
         <div>
-          <Radio.Group
-            defaultValue={1}
-            options={options}
-          />
+          <Radio.Group defaultValue={1} options={options} />
         </div>
       ),
       onOk: () => {
-        message.success('请拨打手机号');
+        message.success("请拨打手机号");
       },
     };
     modal.info(config);

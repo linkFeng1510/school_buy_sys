@@ -1,39 +1,37 @@
-import React, { useEffect, useState } from 'react';
-import './Sign.css'; // 假设样式文件名为 Sign.css
-import SignName from '@/pages/workbench/components/SignName';
-import { request } from '@umijs/max';
-import { QRCode } from 'antd';
-import { history } from '@umijs/max';
+import SignName from "@/pages/workbench/components/SignName";
+import { history, request } from "@umijs/max";
+import { QRCode } from "antd";
+import { useEffect, useState } from "react";
+import "./Sign.css"; // 假设样式文件名为 Sign.css
 export default function Sign() {
   const [isSigned, setIsSigned] = useState(false);
   const [signatureImage, setSignatureImage] = useState<string | null>(null);
   const [showMobileModal, setShowMobileModal] = useState(true); // 默认显示移动端签名弹窗
-
+  const userInfo = JSON.parse(localStorage.userInfo || "{}");
   const signNameUrl = (imgUrl: any) => {
     // 例如使用request发送POST请求
     const formData = new FormData();
-    formData.append('signature', imgUrl);
-    request('/api/purchaseitem/upload', {
-      method: 'POST',
+    formData.append("signature", imgUrl);
+    request("/api/purchaseitem/upload", {
+      method: "POST",
       data: formData,
-      requestType: 'form',
-    }).then(response => {
-      const userInfo = JSON.parse(localStorage.userInfo || '{}');
-      request('/api/user/update', {
-        method: 'POST',
+      requestType: "form",
+    }).then((response) => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const userId = searchParams.get("userId") || userInfo.userId;
+
+      request("/api/user/updateSignatureImage", {
+        method: "POST",
         data: {
-          ...userInfo,
-          currentUserId: userInfo.userId,
-          signatureImageUrl: response.data
-        }
-      }).then(res => {
-        history.replace('./user/login')
-      })
-
-
+          userId,
+          signatureImageUrl: response.data,
+        },
+      }).then((res) => {
+        history.replace("/user/login");
+      });
       // 处理上传成功的逻辑
-    })
-  }
+    });
+  };
   useEffect(() => {
     // 模拟已签名状态
     // 检测屏幕大小，确定移动端页面显示
@@ -42,9 +40,7 @@ export default function Sign() {
     } else {
       setShowMobileModal(false);
     }
-
   }, []);
-
 
   return (
     <div className="sign-container">
@@ -55,12 +51,16 @@ export default function Sign() {
           <div className="pc-sign-content">
             <p>首次登录系统请您手机连接校内wifi扫码设置您的签名</p>
             <div className="signature-placeholder">
-              {/* 当前域名和端口的二维码，使用 qrcode 插件生成 */}
-
-              <QRCode value={`${window.location.origin}`} />
+              {/* 当前路径，使用 qrcode 插件生成 */}
+              <QRCode
+                value={`${window.location.origin}/sign?userId=${userInfo.userId}`}
+              />
             </div>
             <p className="instruction">签名完成后请刷新页面自动进入系统</p>
-            <button className="refresh-btn" onClick={() => history.replace('./user/login')}>
+            <button
+              className="refresh-btn"
+              onClick={() => history.replace("/user/login")}
+            >
               点此刷新
             </button>
           </div>
@@ -72,11 +72,17 @@ export default function Sign() {
         <div className="mobile-sign-modal">
           <div className="modal-header">
             <span>请您先在下方设置您的签名，提交签名后进入系统</span>
-            <button className="close-btn" onClick={() => setShowMobileModal(false)}>
+            <button
+              className="close-btn"
+              onClick={() => setShowMobileModal(false)}
+            >
               ×
             </button>
           </div>
-            <SignName key={Math.random()} onConfirm={(imgUrl: any) => signNameUrl(imgUrl)} />
+          <SignName
+            key={Math.random()}
+            onConfirm={(imgUrl: any) => signNameUrl(imgUrl)}
+          />
         </div>
       )}
     </div>
