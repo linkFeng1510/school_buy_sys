@@ -63,7 +63,9 @@ const PurchaseEntry: React.FC = () => {
   const [form] = Form.useForm();
   const [items, setItems] = useState<any[]>([]);
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [addTemplateModalVisible, setAddTemplateModalVisible] = useState(false);
   const [addForm] = Form.useForm();
+  const [addTemplateForm] = Form.useForm();
   const [fileList, setFileList] = useState<any[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [spinning, setSpinning] = React.useState(false);
@@ -206,10 +208,11 @@ const PurchaseEntry: React.FC = () => {
     // 调用接口 / api / purchaseitem / add，post请求，form - data格式，字段分别是productName是商品名称，spec是规格，brandName是品牌，categoryLevel1Id是一级类目 ID，categoryLevel2Id是二级类目 ID，unit是单位，supplierName是供应商名称，purchaseType是采购类型（1 = 直采，2 = 定向采购），purchaseQuantity是采购数量，purchasePrice是采购单价，applicantName定向采购时必填（purchaseType = 2 时），applyDepartment申请部门（可为空），images是对应的图片资源，userId是用户ID
     const userId = initialState?.currentUser?.userId || ''
     const userName = initialState?.currentUser?.name || ''
+    const signatureImageUrl = initialState?.currentUser?.signatureImageUrl || ''
     const formData = new FormData();
     const purchaseTypeName = users.find(user => user.userId === values.applyUser)?.name || '';
     formData.append('applyUser', purchaseTypeName || userName);
-    formData.append('signatureImageUrl', '');
+    formData.append('signatureImageUrl', signatureImageUrl);
     formData.append('purchaseType', values.purchaseType || '');
     formData.append('applyUserId', values.applyUser || userId || '');
     items.map((item, index) => {
@@ -217,8 +220,8 @@ const PurchaseEntry: React.FC = () => {
       formData.append(`items[${index}].productName`, item.name);
       formData.append(`items[${index}].spec`, item.spec);
       formData.append(`items[${index}].brandName`, item.brand);
-      formData.append(`items[${index}].categoryLevel1Id`, item.category[0]);
-      formData.append(`items[${index}].categoryLevel2Id`, item.category[1]);
+      formData.append(`items[${index}].categoryLevel1Id`, item.category ? item.category[0] : '');
+      formData.append(`items[${index}].categoryLevel2Id`, item.category ? item.category[1] : '');
       formData.append(`items[${index}].unit`, item.unit);
       formData.append(`items[${index}].isFixedAsset`, '0');// 低值易耗品
       formData.append(`items[${index}].quantity`, item.quantity);
@@ -337,13 +340,17 @@ const PurchaseEntry: React.FC = () => {
               }
             }}
           >
-            <Button
-              type={"primary"}
-            >
-              导入数据
-            </Button>
-          </Upload>
+            <Button type={"primary"} >添加物品</Button>
 
+          </Upload>
+          {/* <Button
+            type={"primary"}
+            onClick={() => {
+              setAddTemplateModalVisible(true);
+            }}
+          >
+            添加物品
+          </Button> */}
         </Form.Item>
         {items.map((item, idx) => (
           <Card
@@ -570,6 +577,82 @@ const PurchaseEntry: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
+        <Modal
+          open={addTemplateModalVisible}
+          title="添加物品"
+          onCancel={() => {
+            setAddTemplateModalVisible(false);
+          }}
+          footer={null}
+        >
+          <Form
+            form={addTemplateForm}
+            layout="vertical"
+            initialValues={{ purchaseType: "1" }}
+          >
+            <Form.Item
+              label="采购类型"
+              name="purchaseType"
+              rules={[{ required: true, message: "请选择采购类型" }]}
+            >
+              <Radio.Group>
+                <Radio value="1">直采</Radio>
+                <Radio value="2">定向申请采购</Radio>
+              </Radio.Group>
+            </Form.Item>
+            <Form.Item noStyle shouldUpdate={(prevValues, curValues) => prevValues.purchaseType !== curValues.purchaseType}>
+              {({ getFieldValue }) => {
+                const purchaseType = getFieldValue('purchaseType');
+                if (purchaseType === '2') {
+                  return (
+                    <Form.Item
+                      label="申购申请人"
+                      name="applyUser"
+                      rules={[{ required: true, message: "请选择申购申请人" }]}
+                      required
+                    >
+                    <Select
+                    placeholder="请选择申购申请人"
+                    loading={users.length === 0 && purchaseType === '2'}
+                  >
+                    {users.map(user => (
+                      <Option key={user.userId} value={user.userId}>
+                        {user.name}
+                      </Option>
+                    ))}
+                  </Select>
+                  </Form.Item>
+                  );
+                }
+                return null;
+              }}
+            </Form.Item>
+            <Form.Item>
+              <Upload
+                accept=".xls,.xlsx"
+                name="file"
+                data={{ applyUserId: initialState?.currentUser?.userId || '', applyUser: initialState?.currentUser?.name || '' }}
+                action="/api/stat/lowValueImport"
+                onChange={(info) => {
+                  if (info.file.status !== 'uploading') {
+                    console.log(info.file, info.fileList);
+                  }
+                  if (info.file.status === 'done') {
+                    message.success(`${info.file.name} 导入成功`);
+                    setTimeout(() => {
+                      history.push('/workbench/claim-record');
+                    }, 1000);
+                  } else if (info.file.status === 'error') {
+                    message.error(`${info.file.name} 导入失败`);
+                  }
+                }}
+              >
+
+                <Button icon={<Upload />}>点击上传低值易耗品采购单</Button>
+              </Upload>
+            </Form.Item>
+          </Form>
+        </Modal>
         <Form.Item
           label="采购类型"
           name="purchaseType"
@@ -617,8 +700,8 @@ const PurchaseEntry: React.FC = () => {
             </Button>
           </Space>
         </Form.Item>
-      </Form>
-    </PageContainer>
+      </Form >
+    </PageContainer >
   );
 };
 

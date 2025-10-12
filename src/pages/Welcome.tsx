@@ -31,6 +31,7 @@ const iconMap: Record<string, React.ReactNode> = {
   '物品申领审核': <FileSearchOutlined />,
 };
 
+
 // 菜单项组件
 interface MenuItem {
   name: string;
@@ -97,7 +98,8 @@ const ApplyConfirm: React.FC = () => {
     allMenu.push(item, ...item.childrenList)
   })
   const [childrenList, setChildrenList] = useState<any[]>([]);
-  const [isAdmin, setIsAdmin] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isFixedAsset, setIsFixedAsset] = useState(false);
   const eventName = (item: any) => {
     let strName = '';
     if (isProduct) {
@@ -218,7 +220,8 @@ const columns = [
     title: '操作',
     key: 'action',
     render: (_: any, record: any) => {
-      return <ActionButton item={record} isAdmin={isAdmin} isProduct={isProduct} />;
+      record.updateList = fetchData;
+      return <ActionButton item={record}  isAdmin={isAdmin} isProduct={isProduct} />;
     },
   },
 ];
@@ -229,7 +232,8 @@ const fetchData = async () => {
     const params: any = {
       pageNum: page,
       pageSize: pageSize,
-      isAdmin: isAdmin
+      isAdmin: isAdmin,
+      isFixedAsset: isFixedAsset ? 1 : 0,
     };
     Promise.all([request('/api/order/list', {
       method: 'POST',
@@ -257,7 +261,7 @@ const fetchData = async () => {
 };
 useEffect(() => {
   fetchData();
-}, []);
+}, [isAdmin, isFixedAsset]);
 useEffect(() => {
   setChildrenList(allMenu || []);
 }, [currMenu]);
@@ -265,15 +269,24 @@ useEffect(() => {
 
 // 渲染导航菜单（按角色过滤）
 const visibleMenuItems = menuItems.filter(item => {
-  return childrenList.find(child => child.menuName === item.name);
+  return childrenList.find(child => (child.menuName) === (item.name));
 });
 useEffect(() => {
   let hasVisibleItems = visibleMenuItems.some(item => {
     return item.name.includes('审批');
   });
   setIsAdmin(hasVisibleItems);
-  if (!hasVisibleItems){
-
+  if (hasVisibleItems){
+    visibleMenuItems.some(item => {
+      if (item.name.includes('资产')){
+        setIsFixedAsset(true);
+        return true;
+      } else if (item.name.includes('低值易耗')){
+        setIsFixedAsset(false);
+        return true;
+      }
+      return false;
+    });
   }
 }, [visibleMenuItems]);
 

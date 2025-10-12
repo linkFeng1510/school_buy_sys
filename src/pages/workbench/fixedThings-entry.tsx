@@ -63,7 +63,9 @@ const FixedThingsEntry: React.FC = () => {
   const [form] = Form.useForm();
   const [items, setItems] = useState<any[]>([]);
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [addTemplateModalVisible, setAddTemplateModalVisible] = useState(false);
   const [addForm] = Form.useForm();
+  const [addTemplateForm] = Form.useForm();
   const [fileList, setFileList] = useState<any[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [spinning, setSpinning] = React.useState(false);
@@ -205,15 +207,16 @@ const FixedThingsEntry: React.FC = () => {
     // 调用接口 / api / purchaseitem / add，post请求，form - data格式，字段分别是fixedAssetName是商品名称，spec是规格，brandName是品牌，fixedAssetIdLevel1Id是一级类目 ID，fixedAssetIdLevel2Id是二级类目 ID，unit是单位，supplierName是供应商名称，purchaseType是采购类型（1 = 直采，2 = 定向采购），purchaseQuantity是采购数量，purchasePrice是采购单价，applicantName定向采购时必填（purchaseType = 2 时），applyDepartment申请部门（可为空），images是对应的图片资源，userId是用户ID
     const userId = initialState?.currentUser?.userId || ''
     const userName = initialState?.currentUser?.name || ''
+    const signatureImageUrl = initialState?.currentUser?.signatureImageUrl || ''
     const formData = new FormData();
     const purchaseTypeName = users.find(user => user.userId === values.applyUser)?.name || '';
     formData.append('applyUser', purchaseTypeName || userName);
-    formData.append('signatureImageUrl', '');
+    formData.append('signatureImageUrl', signatureImageUrl);
     formData.append('purchaseType', values.purchaseType || '');
     formData.append('applyUserId', values.applyUser || userId || '');
     items.map((item, index) => {
       const fixedAssetName = categories.find(cat => cat.fixedAssetId === item.fixedAssetId)?.fixedAssetName || '';
-      formData.append(`items[${index}].fixedAssetName`, item.name);
+      formData.append(`items[${index}].productName`, item.name);
       formData.append(`items[${index}].spec`, item.spec);
       formData.append(`items[${index}].brandName`, item.brand);
       formData.append(`items[${index}].fixedAssetId`, item.fixedAssetId || '');
@@ -333,12 +336,16 @@ const FixedThingsEntry: React.FC = () => {
               }
             }}
           >
-            <Button
-              type={"primary"}
-            >
-              导入数据
-            </Button>
+            <Button type="primary">添加物品</Button>
           </Upload>
+          {/* <Button
+            type={"primary"}
+            onClick={() => {
+              setAddTemplateModalVisible(true);
+            }}
+          >
+            添加物品
+          </Button> */}
         </Form.Item>
         {items.map((item, idx) => (
           <Card
@@ -487,11 +494,11 @@ const FixedThingsEntry: React.FC = () => {
               </Upload>
             </Form.Item>
             <Form.Item
-              label="商品名称"
+              label="资产名称"
               name="name"
-              rules={[{ required: true, message: "请输入商品名称" }]}
+              rules={[{ required: true, message: "请输入资产名称" }]}
             >
-              <Input maxLength={20} placeholder="请输入商品名称" />
+              <Input maxLength={20} placeholder="请输入资产名称" />
             </Form.Item>
             <Form.Item
               label="商品规格"
@@ -506,9 +513,9 @@ const FixedThingsEntry: React.FC = () => {
             <Form.Item label="供应商名称" name="supplierName">
               <Input maxLength={20} placeholder="请输入供应商名称" />
             </Form.Item>
-            <Form.Item label="商品分类" name="fixedAssetId" >
+            <Form.Item label="资产分类" name="fixedAssetId" >
               <Select
-                placeholder="请选择商品分类"
+                placeholder="请选择资产分类"
               >
                 {categories.map(unit => (
                   <Option key={unit.fixedAssetId} value={unit.fixedAssetId}>
@@ -564,6 +571,82 @@ const FixedThingsEntry: React.FC = () => {
                   添加
                 </Button>
               </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+        <Modal
+          open={addTemplateModalVisible}
+          title="添加物品"
+          onCancel={() => {
+            setAddTemplateModalVisible(false);
+          }}
+          footer={null}
+        >
+          <Form
+            form={addTemplateForm}
+            layout="vertical"
+            initialValues={{ purchaseType: "1" }}
+          >
+            <Form.Item
+              label="采购类型"
+              name="purchaseType"
+              rules={[{ required: true, message: "请选择采购类型" }]}
+            >
+              <Radio.Group>
+                <Radio value="1">直采</Radio>
+                <Radio value="2">定向申请采购</Radio>
+              </Radio.Group>
+            </Form.Item>
+            <Form.Item noStyle shouldUpdate={(prevValues, curValues) => prevValues.purchaseType !== curValues.purchaseType}>
+              {({ getFieldValue }) => {
+                const purchaseType = getFieldValue('purchaseType');
+                if (purchaseType === '2') {
+                  return (
+                    <Form.Item
+                      label="申购申请人"
+                      name="applyUser"
+                      rules={[{ required: true, message: "请选择申购申请人" }]}
+                      required
+                    >
+                      <Select
+                        placeholder="请选择申购申请人"
+                        loading={users.length === 0 && purchaseType === '2'}
+                      >
+                        {users.map(user => (
+                          <Option key={user.userId} value={user.userId}>
+                            {user.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  );
+                }
+                return null;
+              }}
+            </Form.Item>
+            <Form.Item>
+              <Upload
+                accept=".xls,.xlsx"
+                name="file"
+                data={{ applyUserId: initialState?.currentUser?.userId || '', applyUser: initialState?.currentUser?.name || '' }}
+                action="/api/stat/fixedAssetImport"
+                onChange={(info) => {
+                  if (info.file.status !== 'uploading') {
+                    console.log(info.file, info.fileList);
+                  }
+                  if (info.file.status === 'done') {
+                    message.success(`${info.file.name} 导入成功`);
+                    setTimeout(() => {
+                      history.push('/workbench/claim-record');
+                    }, 1000);
+                  } else if (info.file.status === 'error') {
+                    message.error(`${info.file.name} 导入失败`);
+                  }
+                }}
+              >
+
+                <Button icon={<Upload />}>点击上传资产数据采购单</Button>
+              </Upload>
             </Form.Item>
           </Form>
         </Modal>

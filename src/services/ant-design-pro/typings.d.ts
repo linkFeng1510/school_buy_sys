@@ -8,6 +8,7 @@ declare namespace API {
     userName: any;
     name?: string;
     avatar?: string;
+    signatureImageUrl?: string;
     menus?: any[];
     userId?: string;
     email?: string;

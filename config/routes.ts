@@ -102,7 +102,7 @@ export default [
       },
       {
         path: "/workbench/purchase-record",
-        name: "物品申领记录",
+        name: "申领记录",
         component: "./workbench/purchase-record",
         access: "workbench:purchase-record",
       },

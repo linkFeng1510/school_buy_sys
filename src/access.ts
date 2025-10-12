@@ -13,7 +13,7 @@ export default function access(initialState: { currentUser?: API.CurrentUser | u
     // Workbench permissions
     'workbench:purchase-entry': '低值易耗数据录入',
     'workbench:fixedThings-entry': '资产数据录入',
-    'workbench:claim-record': '采购录入记录',
+    'workbench:claim-record': '数据录入记录',
     'workbench:stock-entry': '低值易耗品入库审批',
     'workbench:thingsStock-entry': '资产入库审批',
     'workbench:claim': '低值易耗品管理',

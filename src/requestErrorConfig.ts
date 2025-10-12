@@ -92,11 +92,11 @@ export const errorConfig: RequestConfig = {
 
     (config: RequestOptions) => {
       // 加一个全局loading
-      console.log(config, 'config');
       // 如果用户登录时间过期，则退出登录
       if (localStorage.getItem('userInfo') && JSON.parse(localStorage.getItem('userInfo') || '{}').expireTime < new Date().getTime()) {
         localStorage.removeItem('userInfo');
         window.location.href = '/user/login';
+        message.error('登录时间已过期，请重新登录！');
       }
 
       if (config.requestType !== 'form') {

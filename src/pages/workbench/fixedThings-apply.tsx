@@ -135,7 +135,8 @@ const ApplyRecord: React.FC = () => {
       return {
         "itemId": curr.itemId,
         "isFixedAsset": curr.isFixedAsset ? 1 : 0,
-        "claimQuantity": curr.num
+        "claimQuantity": curr.num,
+        "storagePath": curr.location
       }
     })
     const params = {

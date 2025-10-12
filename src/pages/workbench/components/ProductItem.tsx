@@ -5,7 +5,7 @@ import { useState } from "react";
 import ProductItem from "@/components/commonListItem";
 
 // Define a separate component for each list currOrder
-const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: boolean, isProduct: boolean }> = ({ item, updateList, isAdmin = false, isProduct = false }) => {
+const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: boolean, isProduct: boolean, editFlag?: boolean }> = ({ item, updateList, isAdmin = false, isProduct = false, editFlag = false }) => {
   item.updateList = updateList;
   const currOrder = item;
   const { renderStatusTag, renderActionButtons } = useStatusActions(currOrder as any, isAdmin, isProduct);
@@ -80,7 +80,7 @@ const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: b
             }
             <Col style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '-webkit-fill-available', maxHeight: 200 }}>
               <div >{renderStatusTag()}</div>
-             {/* <div ><Tag color="blue" style={{ margin: 0 }}>{currOrder.isFixedAsset === 1 ? '资产' : '低值易耗品'}</Tag></div> */}
+              {/* <div ><Tag color="blue" style={{ margin: 0 }}>{currOrder.isFixedAsset === 1 ? '资产' : '低值易耗品'}</Tag></div> */}
               <div onClick={handleActionClick}>{renderActionButtons()}</div>
             </Col>
           </>
@@ -94,24 +94,21 @@ const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: b
         footer={null}
         width={600}
       >
-        {selectedItem && (
-          <>
-            <div style={{ maxHeight: 500, overflowY: 'auto' }}>
-              <List
-                dataSource={selectedItem.items}
-                renderItem={(child: any) => {
-                  const qualityNum = child.quantity || child.claimQuantity
-                  return (
-                    <ProductItem detail={child} hideTotal={true}
-                    />)
-                }
-                }
-              />
-            </div>
-            {productNumHandler(currOrder.items)}
-          </>
-
-        )}
+        {selectedItem && (<>
+          <div style={{ maxHeight: 500, overflowY: 'auto' }}>
+            <List
+              dataSource={selectedItem.items}
+              renderItem={(child: any) => {
+                const qualityNum = child.quantity || child.claimQuantity
+                return (
+                  <ProductItem detail={child} hideTotal={true} editFlag={editFlag} currrentOrder={selectedItem}
+                  />)
+              }
+              }
+            />
+          </div>
+          <div style={{ fontWeight: 'bold', marginTop: 16, textAlign: 'right' }}>总计: ￥{productMoneyHandler(selectedItem)}元</div>
+        </>)}
       </Modal>
     </>
   );

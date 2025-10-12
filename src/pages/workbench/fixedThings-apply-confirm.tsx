@@ -12,7 +12,7 @@ const statusTabs = [
   { key: 'wait', label: '待审核' },
   { key: 'sign', label: '待签收' },
   { key: 'reject', label: '已驳回' },
-  { key: 'done', label: '已完成' },
+  { key: 'complete', label: '已完成' },
 ];
 
 const ApplyConfirm: React.FC = () => {
@@ -28,9 +28,10 @@ const ApplyConfirm: React.FC = () => {
   const getShelfStatusByTab = () => {
     switch (tab) {
       case 'wait': return 0;  // 未申领
-      case 'sign': return 3;  // 已申领
+      case 'complete': return 3;  // 已申领
       case 'done': return 1;  // 已通过
       case 'reject': return 2; // 被驳回
+      case 'sign': return 4; // 待签收
       default: return undefined; // 不过滤
     }
   };
