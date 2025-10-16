@@ -67,6 +67,7 @@ const PurchaseEntry: React.FC = () => {
   const [addForm] = Form.useForm();
   const [addTemplateForm] = Form.useForm();
   const [fileList, setFileList] = useState<any[]>([]);
+  const [excelFileList, setExcelFileList] = useState<any[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [spinning, setSpinning] = React.useState(false);
   const [categories, setCategories] = useState<Option[]>([{ categoryName: "无", id: 0 }]);
@@ -211,10 +212,12 @@ const PurchaseEntry: React.FC = () => {
     const signatureImageUrl = initialState?.currentUser?.signatureImageUrl || ''
     const formData = new FormData();
     const purchaseTypeName = users.find(user => user.userId === values.applyUser)?.name || '';
-    formData.append('applyUser', purchaseTypeName || userName);
+    formData.append('applyUser', userName);
     formData.append('signatureImageUrl', signatureImageUrl);
     formData.append('purchaseType', values.purchaseType || '');
-    formData.append('applyUserId', values.applyUser || userId || '');
+    formData.append('applyUserId', userId || '');
+    formData.append(`purchaseSignName`, purchaseTypeName);
+    formData.append(`purchaseSignId`, values.applyUser||"");
     items.map((item, index) => {
       console.log(item, 'item');
       formData.append(`items[${index}].productName`, item.name);
@@ -301,6 +304,49 @@ const PurchaseEntry: React.FC = () => {
     link.download = '低值易耗品导入模板.xlsx';
     link.click();
   };
+  const handleAddTemplateFinish = async (values: any) => {
+    if (excelFileList.length === 0) {
+      message.error('请上传文件');
+      return;
+    }
+    const formData = new FormData();
+    excelFileList.forEach(file => {
+      formData.append('file', file.originFileObj);
+    });
+    const purchaseTypeName = users.find(user => user.userId === values.applyUser)?.name || '';
+    const userId = initialState?.currentUser?.userId || ''
+    const userName = initialState?.currentUser?.name || ''
+    const signatureImageUrl = initialState?.currentUser?.signatureImageUrl || ''
+    formData.append('applyUser', userName);
+    formData.append('signatureImageUrl', signatureImageUrl);
+    formData.append('purchaseType', values.purchaseType || '');
+    formData.append('applyUserId', userId || '');
+    formData.append(`purchaseSignName`, purchaseTypeName);
+    formData.append(`purchaseSignId`, values.applyUser||"");
+    setSpinning(true);
+    try {
+      const response = await request('/api/stat/lowValueImport', {
+        method: 'POST',
+        data: formData,
+        requestType: 'form',
+      });
+      if (response.code === 200) {
+        message.success('导入成功');
+        setAddTemplateModalVisible(false);
+        addTemplateForm.resetFields();
+        setFileList([]);
+        history.push('/workbench/purchase-record');
+      } else {
+        message.error(response.msg || '导入失败');
+      }
+    } catch (error) {
+      console.error('导入失败:', error);
+      message.error('导入失败');
+    } finally {
+      setSpinning(false);
+    }
+  };
+  console.log(formValues, 'formValuesformValues');
   return (
     <PageContainer>
       <Spin spinning={spinning} size="large" tip="订单创建中。。。" fullscreen={true} />
@@ -321,7 +367,7 @@ const PurchaseEntry: React.FC = () => {
           </Button>
           {/* 这是一个导入按钮，点击后可批量导入低值易耗品采购单 */}
           {/* 还有其他参数 */}
-          <Upload
+          {/* <Upload
             accept=".xls,.xlsx"
             name="file"
             data={{ applyUserId: initialState?.currentUser?.userId || '', applyUser: initialState?.currentUser?.name || '' }}
@@ -342,15 +388,15 @@ const PurchaseEntry: React.FC = () => {
           >
             <Button type={"primary"} >添加物品</Button>
 
-          </Upload>
-          {/* <Button
+          </Upload> */}
+          <Button
             type={"primary"}
             onClick={() => {
               setAddTemplateModalVisible(true);
             }}
           >
-            添加物品
-          </Button> */}
+            导入物品
+          </Button>
         </Form.Item>
         {items.map((item, idx) => (
           <Card
@@ -579,7 +625,7 @@ const PurchaseEntry: React.FC = () => {
         </Modal>
         <Modal
           open={addTemplateModalVisible}
-          title="添加物品"
+          title="导入物品"
           onCancel={() => {
             setAddTemplateModalVisible(false);
           }}
@@ -588,6 +634,7 @@ const PurchaseEntry: React.FC = () => {
           <Form
             form={addTemplateForm}
             layout="vertical"
+            onFinish={handleAddTemplateFinish}
             initialValues={{ purchaseType: "1" }}
           >
             <Form.Item
@@ -631,25 +678,32 @@ const PurchaseEntry: React.FC = () => {
               <Upload
                 accept=".xls,.xlsx"
                 name="file"
-                data={{ applyUserId: initialState?.currentUser?.userId || '', applyUser: initialState?.currentUser?.name || '' }}
-                action="/api/stat/lowValueImport"
-                onChange={(info) => {
-                  if (info.file.status !== 'uploading') {
-                    console.log(info.file, info.fileList);
+                fileList={excelFileList}
+                beforeUpload={(file) => {
+                  // Prevent automatic upload
+                  return false;
+                }}
+                onChange={({ fileList: newFileList }) => {
+                  // Limit to 1 file
+                  if (newFileList.length > 1) {
+                    setExcelFileList(newFileList.slice(0, 1));
+                    return;
                   }
-                  if (info.file.status === 'done') {
-                    message.success(`${info.file.name} 导入成功`);
-                    setTimeout(() => {
-                      history.push('/workbench/claim-record');
-                    }, 1000);
-                  } else if (info.file.status === 'error') {
-                    message.error(`${info.file.name} 导入失败`);
-                  }
+                  setExcelFileList(newFileList);
                 }}
               >
-
                 <Button icon={<Upload />}>点击上传低值易耗品采购单</Button>
               </Upload>
+            </Form.Item>
+            <Form.Item>
+              <Space style={{ float: 'right' }}>
+                <Button htmlType="button" onClick={() => addTemplateForm.resetFields()}>
+                  重置
+                </Button>
+                <Button type="primary" htmlType="submit">
+                  提交
+                </Button>
+              </Space>
             </Form.Item>
           </Form>
         </Modal>

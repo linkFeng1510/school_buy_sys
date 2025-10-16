@@ -1,6 +1,6 @@
 // src/hooks/callbacks.ts
 import React, { useState } from 'react';
-import { Modal, Button, message, Card, Descriptions, Row, Col, Form } from 'antd';
+import { Modal, Button, message, Card, Descriptions, Row, Col, Form, Input } from 'antd';
 import { ItemData } from './commonHooks';
 import SignName from '@/pages/workbench/components/SignName';
 import { request, useModel } from '@umijs/max';
@@ -10,7 +10,7 @@ import ProductItem from '@/components/commonListItem';
 export const useHandleSign = () => {
     const { initialState } = useModel('@@initialState');
     const { currentUser } = initialState || {};
-
+    const [signForm] = Form.useForm();
   const handleSign = (modal: any, currOrder: ItemData) => {
     const onFinish = async (values: any) => {
       // Modal.confirm({
@@ -21,11 +21,13 @@ export const useHandleSign = () => {
       //   footer: null,
       //   closable: true,
       // });
+
       const params = {
         userId: currentUser?.userId,
         userName: currentUser?.name,
         signatureImageUrl: currentUser?.signName,
         orderId: currOrder.orderId,
+        storagePath: values.location,
       };
       const response = await request('/api/claim/receive', {
         method: 'POST',
@@ -33,9 +35,9 @@ export const useHandleSign = () => {
       })
       if (response.success) {
         message.success('签收成功');
+        signForm.resetFields();
         Modal.destroyAll();
         currOrder.updateList()
-
       }
     };
 
@@ -81,6 +83,7 @@ export const useHandleSign = () => {
         <>
           <div style={{ maxHeight: 500, overflowY: 'auto' }}>
             <Form
+              form={signForm}
               onFinish={onFinish}
               layout="vertical"
               initialValues={{ items: currOrder.items || [currOrder] || [] }}
@@ -99,18 +102,24 @@ export const useHandleSign = () => {
                   </>
                 )}
               </Form.List>
+              <Form.Item label="存放地点" rules={[{ required: true, message: '请输入存放地点' }]} required name="location">
+                <Input
+                  style={{ width: 160 }}
+                  placeholder="请输入存放地点"
+                />
+              </Form.Item>
+              {productNumHandler(currOrder.items)}
+              <Form.Item style={{ textAlign: 'right', marginTop: 24 }}>
+                <Button onClick={rejectHandler} style={{ marginRight: 8 }}>取消</Button>
+                <Button type="primary"  htmlType="submit">确定签收</Button>
+              </Form.Item>
             </Form>
           </div>
-          {productNumHandler(currOrder.items)}
+
         </>
 
       ),
-      footer: [
-        <div style={{ textAlign: 'right' }}>
-          <Button onClick={rejectHandler} style={{ marginRight: 8 }}>取消</Button>
-          <Button type="primary" onClick={onFinish}>确定签收</Button>
-        </div>
-      ],
+      footer: null,
       closable: true,
       onCancel: () => { },
       okText: '确定签收',

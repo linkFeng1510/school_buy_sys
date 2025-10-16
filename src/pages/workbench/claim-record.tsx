@@ -8,7 +8,7 @@ import PurchaseItemCard from './components/ProductItem';
 const statusTabs = [
   { key: 'all', label: '全部' },
   { key: 'wait', label: '待审核' },
-  { key: 'sign', label: '待签收' },
+  // { key: 'sign', label: '待签收' },
   { key: 'reject', label: '已驳回' },
   { key: 'done', label: '已完成' },
 ];
@@ -138,7 +138,7 @@ const claimRecord: React.FC = () => {
             <List
               loading={loading}
               dataSource={listData}
-              renderItem={item => <PurchaseItemCard key={item.id} item={item} updateList={fetchData} isAdmin={false} isProduct={false} editFlag={true} />}
+              renderItem={item => <PurchaseItemCard key={item.id} item={item} updateList={fetchData} isAdmin={false} isProduct={false}  />}
             />
             {/* 分页 */}
             <Row justify="end" style={{ marginTop: 16 }}>

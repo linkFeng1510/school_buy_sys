@@ -4,48 +4,42 @@ import { PageContainer, ProTable, ProColumns } from '@ant-design/pro-components'
 import * as XLSX from 'xlsx';
 
 // Mock 数据模拟
-const generateMockData = (count: number, year: number, month: number): any[] => {
+const generateMockData = (count: number): any[] => {
   const products = [
     '笔记本电脑', '打印机', '办公桌', '椅子', '键盘', '鼠标', '显示器', '投影仪', '扫描仪', '电话机',
   ];
-  const brands = ['联想', '惠普', '戴尔', '华为', '苹果', '小米', '华硕', '三星', '宏碁', '清华同方'];
-  const models = ['ThinkPad X1', 'HP LaserJet', 'Dell OptiPlex', 'MateBook', 'MacBook Pro', 'Redmi Book', 'ASUS ZenBook', 'Samsung Galaxy', 'Acer Swift', 'Tongfang T600'];
   const units = ['台', '台', '张', '把', '个', '个', '台', '台', '台', '部'];
   const prices = [5000, 2000, 800, 300, 100, 50, 3000, 5000, 2000, 800];
 
-  // 模拟多个入库批次
-  const batches = Array.from({ length: 3 }, (_, i) => ({
-    quantity: Math.floor(Math.random() * 50),
-    price: prices[Math.floor(Math.random() * prices.length)],
+  return Array.from({ length: count }, (_, i) => ({
+    id: `item-${i + 1}`,
+    productName: products[i % products.length],
+    unit: units[i % units.length],
+    price: prices[i % prices.length],
+    initialQuantity: Math.floor(Math.random() * 100),
+    initialAmount: Math.floor(Math.random() * 10000),
+    increaseQuantity: Math.floor(Math.random() * 50),
+    increaseAmount: Math.floor(Math.random() * 5000),
+    decreaseQuantity: Math.floor(Math.random() * 30),
+    decreaseAmount: Math.floor(Math.random() * 3000),
+    finalQuantity: Math.floor(Math.random() * 120),
+    finalAmount: Math.floor(Math.random() * 15000),
   }));
-
-  return Array.from({ length: count }, (_, i) => {
-    const batch = batches[i % batches.length];
-    const totalQuantity = batch.quantity;
-    const totalPrice = batch.price * totalQuantity;
-
-    return {
-      id: `item-${i + 1}`,
-      productName: products[i % products.length],
-      brand: brands[i % brands.length],
-      model: models[i % models.length],
-      unit: units[i % units.length],
-      quantity: totalQuantity,
-      price: batch.price,
-      totalAmount: totalPrice,
-    };
-  });
 };
 
 interface DataType {
   id: string;
   productName: string;
-  brand: string;
-  model: string;
   unit: string;
-  quantity: number;
   price: number;
-  totalAmount: number;
+  initialQuantity: number;
+  initialAmount: number;
+  increaseQuantity: number;
+  increaseAmount: number;
+  decreaseQuantity: number;
+  decreaseAmount: number;
+  finalQuantity: number;
+  finalAmount: number;
 }
 
 const ApplicationListPage: React.FC = () => {
@@ -54,7 +48,7 @@ const ApplicationListPage: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth() + 1); // 当前月
+  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth()); // 当前月前一个月
   const [currYear, setCurrYear] = useState<number>(new Date().getFullYear()); // 当前年
 
   // 使用 mock 数据
@@ -68,7 +62,7 @@ const ApplicationListPage: React.FC = () => {
       // 模拟延迟
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const mockData = generateMockData(16, currYear, currMonth); // 生成 16 条 mock 数据
+      const mockData = generateMockData(16); // 生成 16 条 mock 数据
       setListData(mockData);
       setTotal(mockData.length);
     } catch (error) {
@@ -87,25 +81,28 @@ const ApplicationListPage: React.FC = () => {
     }
 
     // 构建导出数据
-    const exportData = dataList.map((item, index) => ({
-      '序号': index + 1,
-      '物品名称': item.productName,
-      '品牌': item.brand,
-      '规格型号': item.model,
+    const exportData = dataList.map(item => ({
+      '序号': item.id,
+      '资产名称': item.productName,
       '单位': item.unit,
-      '数量': item.quantity,
       '单价': item.price,
-      '总金额': item.totalAmount,
+      '期初数-数量': item.initialQuantity,
+      '期初数-金额': item.initialAmount,
+      '本期增加-数量': item.increaseQuantity,
+      '本期增加-金额': item.increaseAmount,
+      '本期减少-数量': item.decreaseQuantity,
+      '本期减少-金额': item.decreaseAmount,
+      '期末数-数量': item.finalQuantity,
+      '期末数-金额': item.finalAmount,
     }));
 
     // 创建工作簿
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    const sheetName = '低值耗材入库统计';
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    XLSX.utils.book_append_sheet(workbook, worksheet, '资产统计');
 
     // 导出文件
-    XLSX.writeFile(workbook, `${sheetName}_${currYear}年${currMonth}月.xlsx`);
+    XLSX.writeFile(workbook, `资产统计_${currYear}年${currMonth + 1}月.xlsx`);
     message.success('导出成功！');
   };
 
@@ -117,33 +114,15 @@ const ApplicationListPage: React.FC = () => {
       width: 80,
     },
     {
-      title: '物品名称',
+      title: '资产名称',
       dataIndex: 'productName',
       valueType: 'text',
       width: 200,
     },
     {
-      title: '品牌',
-      dataIndex: 'brand',
-      valueType: 'text',
-      width: 120,
-    },
-    {
-      title: '规格型号',
-      dataIndex: 'model',
-      valueType: 'text',
-      width: 150,
-    },
-    {
       title: '单位',
       dataIndex: 'unit',
       valueType: 'text',
-      width: 100,
-    },
-    {
-      title: '数量',
-      dataIndex: 'quantity',
-      valueType: 'digit',
       width: 100,
     },
     {
@@ -153,10 +132,92 @@ const ApplicationListPage: React.FC = () => {
       width: 100,
     },
     {
-      title: '总金额',
-      dataIndex: 'totalAmount',
-      valueType: 'money',
-      width: 120,
+      title: '期初数',
+      children: [
+        {
+          title: '数量',
+          dataIndex: 'initialQuantity',
+          valueType: 'digit',
+          width: 100,
+        },
+        {
+          title: '金额',
+          dataIndex: 'initialAmount',
+          valueType: 'money',
+          width: 100,
+          render: (dom: React.ReactNode) => (
+            <span style={{ backgroundColor: 'yellow', padding: '4px', borderRadius: '4px' }}>
+              {dom}
+            </span>
+          ),
+        },
+      ],
+    },
+    {
+      title: '本期增加',
+      children: [
+        {
+          title: '数量',
+          dataIndex: 'increaseQuantity',
+          valueType: 'digit',
+          width: 100,
+        },
+        {
+          title: '金额',
+          dataIndex: 'increaseAmount',
+          valueType: 'money',
+          width: 100,
+          render: (dom: React.ReactNode) => (
+            <span style={{ backgroundColor: 'yellow', padding: '4px', borderRadius: '4px' }}>
+              {dom}
+            </span>
+          ),
+        },
+      ],
+    },
+    {
+      title: '本期减少',
+      children: [
+        {
+          title: '数量',
+          dataIndex: 'decreaseQuantity',
+          valueType: 'digit',
+          width: 100,
+        },
+        {
+          title: '金额',
+          dataIndex: 'decreaseAmount',
+          valueType: 'money',
+          width: 100,
+          render: (dom: React.ReactNode) => (
+            <span style={{ backgroundColor: 'yellow', padding: '4px', borderRadius: '4px' }}>
+              {dom}
+            </span>
+          ),
+        },
+      ],
+    },
+    {
+      title: '期末数',
+      children: [
+        {
+          title: '数量',
+          dataIndex: 'finalQuantity',
+          valueType: 'digit',
+          width: 100,
+        },
+        {
+          title: '金额',
+          dataIndex: 'finalAmount',
+          valueType: 'money',
+          width: 100,
+          render: (dom: React.ReactNode) => (
+            <span style={{ backgroundColor: 'yellow', padding: '4px', borderRadius: '4px' }}>
+              {dom}
+            </span>
+          ),
+        },
+      ],
     },
   ];
 
@@ -181,8 +242,8 @@ const ApplicationListPage: React.FC = () => {
           <Select
             key="month"
             style={{ width: 120 }}
-            value={currMonth}
-            onChange={(value) => setCurrMonth(value)}
+            value={currMonth + 1}
+            onChange={(value) => setCurrMonth(value - 1)}
           >
             {[...Array(12)].map((_, i) => (
               <Select.Option key={i + 1} value={i + 1}>

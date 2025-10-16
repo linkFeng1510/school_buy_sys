@@ -11,6 +11,8 @@ const ProductItem = ({ detail, hideTotal = false, isProduct = false, editFlag = 
   // 是否是易耗品
   const isFixedAsset = detail.isFixedAsset || detail.isFixedAsset === '1'
   const productName = (detail.productName || detail.fixedAssetName)
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
   // 图片上传模拟
   const handlePreview = async (file: any) => {
     if (!file.url && !file.preview) {
@@ -18,10 +20,12 @@ const ProductItem = ({ detail, hideTotal = false, isProduct = false, editFlag = 
     }
   };
   useEffect(() => {
-    if (detail.coverImageUrl) {
-      setFileList([{ url: detail.coverImageUrl }])
+    if (detail.imageUrls) {
+      let urlArr = JSON.parse(detail.imageUrls || '[]')
+      urlArr = urlArr.map((url: string, index: number) => ({ uid: index, url }))
+      setFileList(urlArr)
     }
-  }, [detail.coverImageUrl])
+  }, [detail.imageUrls])
   return (
     <div style={{ display: 'flex', alignItems: 'center', flex: 1, marginBottom: 16, borderBottom: '1px solid #eee', paddingBottom: 16 }}
     >
@@ -36,55 +40,49 @@ const ProductItem = ({ detail, hideTotal = false, isProduct = false, editFlag = 
         }}
         fileList={fileList}
         onChange={async ({ fileList: newFileList }) => {
-          // Limit to 1 file
-          if (newFileList.length > 1) {
-            setFileList(newFileList.slice(0, 1));
+          // Limit to 4 files
+          if (newFileList.length > 4) {
+            setFileList(newFileList.slice(0, 4));
             return;
           }
           setFileList(newFileList);
-          const userId = currrentOrder.userId || ''
-          const userName = currrentOrder.name || ''
-          const signatureImageUrl = currrentOrder.signatureImageUrl || ''
           const formData = new FormData();
-          const purchaseTypeName = currrentOrder.applyUser || '';
-          formData.append('orderId', currrentOrder.orderId || '');
-          formData.append('applyUser', purchaseTypeName || userName);
-          formData.append('signatureImageUrl', signatureImageUrl);
-          formData.append('purchaseType', currrentOrder.purchaseType || '');
-          formData.append('applyUserId', currrentOrder.applyUserId || userId || '');
-          console.log(currrentOrder,'currrentOrdercurrrentOrdercurrrentOrder');
-          currrentOrder.items.map((item: {
-            productName: string | Blob;
-            brandName: string | Blob;
-            coverImageUrl: string;
-            isFixedAsset: string | Blob;
-            category: any;
-            fixedAssetName: string; name: string | Blob; spec: string | Blob; brand: string | Blob; fixedAssetId: any; unit: string | Blob; quantity: string | Blob; price: string | Blob; supplierName: string | Blob; image: { fileList: any[]; };
-}, index: any) => {
-            console.log(item === detail, 'itemitemitem', item === detail ? newFileList[0]?.originFileObj || '' : item.coverImageUrl || '');
-            formData.append(`items[${index}].isFixedAsset`, item.isFixedAsset);// 固定资产
-            formData.append(`items[${index}].quantity`, item.quantity);
-            formData.append(`items[${index}].price`, item.price);
-            formData.append(`items[${index}].imageFiles`, item === detail ? newFileList[0]?.originFileObj || '' : item.coverImageUrl || '');
-            formData.append(`items[${index}].spec`, item.spec);
-            formData.append(`items[${index}].brandName`, item.brandName);
-            formData.append(`items[${index}].unit`, item.unit);
-            formData.append(`items[${index}].supplierName`, item.supplierName);
-            if (item.isFixedAsset){
-              formData.append(`items[${index}].fixedAssetId`, item.fixedAssetId || '');
-              formData.append(`items[${index}].fixedAssetName`, item.fixedAssetName || '');
-            }else{
-              formData.append(`items[${index}].productName`, item.productName);
-              formData.append(`items[${index}].categoryLevel1Id`, item.category ? item.category[0] : '');
-              formData.append(`items[${index}].categoryLevel2Id`, item.category ? item.category[1] : '');
+          formData.append(`id`, detail.itemId);// 固定资产
+          console.log(fileList,newFileList);
+          newFileList.forEach((file) => {
+            if (file.originFileObj) {
+              formData.append('imageFiles', file.originFileObj);
+            }
+            if(file.url){
+              formData.append('imageUrls', file.url);
             }
           });
+          // formData.append(`userId`, currentUser?.userId || "");// 固定资产
+
+          // formData.append(`isFixedAsset`, detail.isFixedAsset);// 固定资产
+          // formData.append(`quantity`, detail.quantity);
+          // formData.append(`price`, detail.price);
+          // formData.append(`spec`, detail.spec);
+          // formData.append(`brandName`, detail.brandName);
+          // formData.append(`unit`, detail.unit);
+          // formData.append(`supplierName`, detail.supplierName);
+          // if (detail.isFixedAsset) {
+          //   formData.append(`fixedAssetId`, detail.fixedAssetId || '');
+          //   formData.append(`fixedAssetName`, detail.fixedAssetName || '');
+          // } else {
+          //   formData.append(`productName`, detail.productName);
+          //   formData.append(`categoryLevel1Id`, detail.category ? detail.category[0] : '');
+          //   formData.append(`categoryLevel2Id`, detail.category ? detail.category[1] : '');
+          // }
+
+
           await request('/api/order/update', {
             method: 'POST',
             data: formData,
             requestType: 'form',
           })
           message.success('图片修改成功');
+          currrentOrder.updateList && currrentOrder.updateList()
 
           // Save file URLs to form
           // const urls = newFileList.map(f =>
@@ -94,17 +92,16 @@ const ProductItem = ({ detail, hideTotal = false, isProduct = false, editFlag = 
         listType="picture-card"
         multiple
         maxCount={4}
-        style={{ marginRight: 16 }}
         onPreview={handlePreview}
       >
-        {fileList.length < 1 && (
+        {fileList.length < 4 && (
           <div>
             <PlusOutlined />
             <div style={{ marginTop: 8 }}>上传图片</div>
           </div>
         )}
       </Upload>}
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, marginLeft: 16 }}>
         <div style={{ color: '#888', fontSize: 12 }}>名称:{productName}</div>
         <div style={{ color: '#888', fontSize: 12 }}>品牌:{(detail.brandName) || '无'}</div>
         <div style={{ color: '#888', fontSize: 12 }}>规格型号:{detail.spec}</div>

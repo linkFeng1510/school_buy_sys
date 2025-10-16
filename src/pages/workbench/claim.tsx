@@ -118,7 +118,7 @@ const claim: React.FC = () => {
             <List
               loading={loading}
               dataSource={listData}
-                renderItem={item => <PurchaseItemCard key={item.itemId} item={item} updateList={fetchData} isAdmin={false} isProduct={true} />}
+                renderItem={item => <PurchaseItemCard key={item.itemId} item={item} updateList={fetchData} isAdmin={false} isProduct={true} editFlag={true} />}
             />
             {/* 分页 */}
             <Row justify="end" style={{ marginTop: 16 }}>

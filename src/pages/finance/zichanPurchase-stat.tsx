@@ -89,7 +89,7 @@ const ApplicationListPage: React.FC = () => {
     // 构建导出数据
     const exportData = dataList.map((item, index) => ({
       '序号': index + 1,
-      '物品名称': item.productName,
+      '资产名称': item.productName,
       '品牌': item.brand,
       '规格型号': item.model,
       '单位': item.unit,
@@ -101,11 +101,12 @@ const ApplicationListPage: React.FC = () => {
     // 创建工作簿
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    const sheetName = '低值耗材入库统计';
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    // 这里的名称使用当前路由名作为工作簿名称，要动态获取
+    const routeName = '资产出库统计';
+    XLSX.utils.book_append_sheet(workbook, worksheet, routeName);
 
     // 导出文件
-    XLSX.writeFile(workbook, `${sheetName}_${currYear}年${currMonth}月.xlsx`);
+    XLSX.writeFile(workbook, `${routeName}_${currYear}年${currMonth}月.xlsx`);
     message.success('导出成功！');
   };
 
@@ -117,7 +118,7 @@ const ApplicationListPage: React.FC = () => {
       width: 80,
     },
     {
-      title: '物品名称',
+      title: '资产名称',
       dataIndex: 'productName',
       valueType: 'text',
       width: 200,

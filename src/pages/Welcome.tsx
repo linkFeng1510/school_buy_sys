@@ -229,12 +229,14 @@ const columns = [
 // 获取 API 数据
 const fetchData = async () => {
   try {
-    const params: any = {
+    let params: any = {
       pageNum: page,
       pageSize: pageSize,
       isAdmin: isAdmin,
-      isFixedAsset: isFixedAsset ? 1 : 0,
     };
+    if (isAdmin){
+      params.isFixedAsset = isFixedAsset ? 1 : 0;
+    }
     Promise.all([request('/api/order/list', {
       method: 'POST',
       data: params,

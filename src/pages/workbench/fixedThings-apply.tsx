@@ -81,36 +81,25 @@ const ApplyRecord: React.FC = () => {
   // 加入申领车
   const handleAdd = (item: any) => {
     setAddItem(item);
-    setAddNum(0);
     setAddModal(true);
   };
   const cancelAdd = () => {
     setAddModal(false);
     setAddItem(null);
-    setAddNum(0);
-    setAddLocation('');
     locationForm.resetFields();
   }
-  const handleAddConfirm = () => {
-    if (!addNum || addNum < 1) {
-      message.warning('请输入正确的数量');
-      return;
-    }
-    if (addNum > addItem.onlineQuantity) {
-      message.warning('超出可申领数量');
-      return;
-    }
+  const handleAddConfirm = (values: any) => {
+    console.log(values,'values');
     const exist = cart.find((c) => c.itemId === addItem.itemId);
     let newCart;
     if (exist) {
-      newCart = cart.map(c => c.itemId === addItem.itemId ? { ...c, num: c.num + addNum, location: addLocation } : c);
+      newCart = cart.map(c => c.itemId === addItem.itemId ? { ...c, num: c.num + values.num, location: values.location } : c);
     } else {
-      newCart = [...cart, { ...addItem, num: addNum, location: addLocation }];
+      newCart = [...cart, { ...addItem, num: values.num, location: values.location }];
     }
     setCart(newCart);
     setAddModal(false);
-    setAddNum(0);
-    setAddLocation('');
+    locationForm.resetFields();
     message.success('已加入申领车');
   };
 
@@ -229,26 +218,22 @@ const ApplyRecord: React.FC = () => {
       >
         {addItem && (
           <>
-            <Form layout="vertical" form={locationForm} >
+            <Form layout="vertical" form={locationForm} onFinish={handleAddConfirm}>
               <Form.Item label="">
                 <ProductItem detail={addItem} hideTotal={true} isProduct={true} />
               </Form.Item>
-              <Form.Item label="申领数量" style={{ margin: '8px 0' }} rules={[{ required: true, message: '请输入申领数量' }]}>
+              <Form.Item label="申领数量" style={{ margin: '8px 0' }} rules={[{ required: true, message: '请输入申领数量' }]} required name="num">
                 <InputNumber
                   parser={(value) => parseInt(value || '0', 10)}
                   min={1}
                   max={addItem.onlineQuantity}
-                  value={addNum}
-                  onChange={v => setAddNum(Number(v))}
                   style={{ width: 160 }}
                   placeholder="请输入申领数量"
                 />
 
               </Form.Item>
-              <Form.Item label="存放地点" rules={[{ required: true, message: '请输入存放地点' }]}>
+              <Form.Item label="存放地点" rules={[{ required: true, message: '请输入存放地点' }]} required name="location">
                 <Input
-                  value={addLocation}
-                  onChange={v => setAddLocation(v.target.value)}
                   style={{ width: 160 }}
                   placeholder="请输入存放地点"
                 />
@@ -258,7 +243,7 @@ const ApplyRecord: React.FC = () => {
                 <Button
                   type="primary"
                   style={{ marginRight: 8 }}
-                  onClick={handleAddConfirm}
+                  htmlType="submit"
                 >
                   确认加入
                 </Button>

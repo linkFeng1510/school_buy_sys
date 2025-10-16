@@ -36,7 +36,6 @@ export const useHandleUrgeApplyReview = () => {
       userList.forEach((userItem: User) => {
         userItem.roles.forEach((role) => {
           if (role.roleId === 2 || role.roleName.includes("库管")) {
-            console.log(item, "itemitemitem");
             if (isFixedAsset && role.roleName.includes("资产")) {
               filteredUsers.push(userItem);
             }

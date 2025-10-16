@@ -31,6 +31,7 @@ const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: b
   };
 
   const handleCardClick = () => {
+    console.log(currOrder,'currOrdercurrOrdercurrOrder');
     if (currOrder.items && currOrder.items.length > 0) {
       setSelectedItem(currOrder);
       setVisible(true);
@@ -75,7 +76,7 @@ const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: b
                 ￥{productMoneyHandler(currOrder)}元
               </Typography.Text>
             </Col>}
-            {isProduct && <><ProductItem detail={currOrder} hideTotal={true} isProduct={true} />
+            {isProduct && <><ProductItem detail={currOrder} hideTotal={true} isProduct={true} editFlag={editFlag} />
             </>
             }
             <Col style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '-webkit-fill-available', maxHeight: 200 }}>
@@ -101,7 +102,7 @@ const PurchaseItemCard: React.FC<{ item: any, updateList: () => void, isAdmin: b
               renderItem={(child: any) => {
                 const qualityNum = child.quantity || child.claimQuantity
                 return (
-                  <ProductItem detail={child} hideTotal={true} editFlag={editFlag} currrentOrder={selectedItem}
+                  <ProductItem detail={child} hideTotal={true} currrentOrder={selectedItem}
                   />)
               }
               }

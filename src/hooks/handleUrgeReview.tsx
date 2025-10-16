@@ -16,7 +16,7 @@ interface User {
 
 export const useHandleUrgeReview = () => {
   const [users, setUsers] = useState<User[]>([]); // Typed state
-  const fetchUsers = async () => {
+  const fetchUsers = async (currentItem: ItemData) => {
     try {
       const response = await request('/api/user/list', {
         method: 'POST',
@@ -30,10 +30,19 @@ export const useHandleUrgeReview = () => {
       const userList = response.data?.records || [];
 
       const filteredUsers: User[] = [];
+      const isFixedAsset = currentItem.items.some((ii: { isFixedAsset: number; }) => {
+        return ii.isFixedAsset == 1;
+      });
       userList.forEach((userItem: User) => {
         userItem.roles.forEach((role) => {
-          if (role.roleId === 2 || role.roleName === '库管') {
-            filteredUsers.push(userItem);
+          if (isFixedAsset){
+            if (role.roleName.includes('库管') && role.roleName.includes('资产')){
+              filteredUsers.push(userItem);
+            }
+          }else{
+            if (role.roleName.includes('库管') && role.roleName.includes('低值')){
+              filteredUsers.push(userItem);
+            }
           }
         });
       });
@@ -55,7 +64,7 @@ export const useHandleUrgeReview = () => {
   };
 
   const handleUrgeReview = async (modal: any, item: ItemData) => {
-    const options = await fetchUsers();
+    const options = await fetchUsers(item);
     console.log(options, 'options');
     const config = {
       title: '催审核',

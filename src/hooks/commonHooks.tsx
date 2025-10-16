@@ -110,6 +110,8 @@ export const useStatusActions = (item: ItemData, isAdmin: boolean = false, isPro
           return { color: statusColorMap[2], text: "已驳回" };
         case 3:
           return { color: statusColorMap[3], text: "已完成" };
+        case 4:
+          return { color: statusColorMap[1], text: "待签收" };
         default:
           return { color: "green", text: "已完成" };
       }

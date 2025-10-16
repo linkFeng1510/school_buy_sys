@@ -5,11 +5,9 @@
   "description": "An out-of-box UI solution for enterprise applications",
   "repository": "git@github.com:ant-design/ant-design-pro.git",
   "scripts": {
-
     "build": "max build",
     "dev": "npm run start:dev",
     "start:dev": "cross-env REACT_APP_ENV=dev MOCK=none UMI_ENV=dev max dev"
-
   },
   "browserslist": [
     "defaults"
@@ -52,7 +50,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3",
     "umi-presets-pro": "^2.0.3",
-    "umi-serve": "^1.9.11"
+    "umi-serve": "^1.9.11",
+    "xlsx": "^0.18.5"
   },
   "engines": {
     "node": ">=20.0.0"

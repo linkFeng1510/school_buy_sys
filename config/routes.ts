@@ -160,15 +160,21 @@ export default [
         access: "finance:purchase-stat",
       },
       {
+        path: "/finance/zichanThingsStock-stat",
+        name: "资产盘存统计",
+        component: "./finance/zichanData-overview",
+        access: "finance:thingsStock-stat",
+      },
+      {
         path: "/finance/thingsStock-stat",
         name: "资产入库统计",
-        component: "./finance/purchase-stat",
+        component: "./finance/zichanClaim-stat",
         access: "finance:thingsStock-stat",
       },
       {
         path: "/finance/thingsStock-out-stat",
         name: "资产出库统计",
-        component: "./finance/purchase-stat",
+        component: "./finance/zichanPurchase-stat",
         access: "finance:thingsStock-out-stat",
       },
     ],
