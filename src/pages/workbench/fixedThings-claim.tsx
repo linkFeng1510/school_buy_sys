@@ -25,6 +25,8 @@ const claim: React.FC = () => {
   // Fetch data from API
   const fetchData = async () => {
     setLoading(true);
+    setListData([]);
+    setTotal(0);
     try {
       const params: any = {
         pageNum: page,

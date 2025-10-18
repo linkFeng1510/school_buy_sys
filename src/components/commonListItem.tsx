@@ -11,8 +11,6 @@ const ProductItem = ({ detail, hideTotal = false, isProduct = false, editFlag = 
   // 是否是易耗品
   const isFixedAsset = detail.isFixedAsset || detail.isFixedAsset === '1'
   const productName = (detail.productName || detail.fixedAssetName)
-  const { initialState } = useModel('@@initialState');
-  const { currentUser } = initialState || {};
   // 图片上传模拟
   const handlePreview = async (file: any) => {
     if (!file.url && !file.preview) {
@@ -48,15 +46,16 @@ const ProductItem = ({ detail, hideTotal = false, isProduct = false, editFlag = 
           setFileList(newFileList);
           const formData = new FormData();
           formData.append(`id`, detail.itemId);// 固定资产
-          console.log(fileList,newFileList);
+          let imgsArr: string[] = []
           newFileList.forEach((file) => {
             if (file.originFileObj) {
               formData.append('imageFiles', file.originFileObj);
             }
             if(file.url){
-              formData.append('imageUrls', file.url);
+              imgsArr.push(file.url);
             }
           });
+          formData.append('imageFileNames', JSON.stringify(imgsArr) || '');
           // formData.append(`userId`, currentUser?.userId || "");// 固定资产
 
           // formData.append(`isFixedAsset`, detail.isFixedAsset);// 固定资产
@@ -76,13 +75,13 @@ const ProductItem = ({ detail, hideTotal = false, isProduct = false, editFlag = 
           // }
 
 
-          await request('/api/order/update', {
+          await request('/api/item/edit', {
             method: 'POST',
             data: formData,
             requestType: 'form',
           })
           message.success('图片修改成功');
-          currrentOrder.updateList && currrentOrder.updateList()
+          detail.updateList && detail.updateList()
 
           // Save file URLs to form
           // const urls = newFileList.map(f =>

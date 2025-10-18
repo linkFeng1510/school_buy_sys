@@ -56,6 +56,7 @@ const ApplyRecord: React.FC = () => {
 
   const fetchGoods = async () => {
     setLoading(true);
+    setGoods([]);
     try {
       const result = await request("/api/item/list", {
         method: "POST",

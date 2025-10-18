@@ -37,6 +37,8 @@ const claim: React.FC = () => {
       if (searchTxt) {
         params.itemName = searchTxt;
       }
+      setListData([]);
+      setTotal(0);
       const response = await request('/api/item/list', {
         method: 'POST',
         data: params
