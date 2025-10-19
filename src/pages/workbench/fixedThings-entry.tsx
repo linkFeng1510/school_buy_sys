@@ -212,7 +212,7 @@ const FixedThingsEntry: React.FC = () => {
     const formData = new FormData();
     const purchaseTypeName = users.find(user => user.userId === values.applyUser)?.name || '';
     formData.append('applyUser', userName);
-    formData.append('signatureImageUrl', signatureImageUrl);
+    formData.append('addSignatureImageUrl', signatureImageUrl);
     formData.append('purchaseType', values.purchaseType || '');
     formData.append('applyUserId', userId || '');
     formData.append(`purchaseSignName`, purchaseTypeName);

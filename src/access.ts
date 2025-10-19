@@ -34,6 +34,7 @@ export default function access(initialState: { currentUser?: API.CurrentUser | u
     'finance:claim-stat': '低值耗材入库数据统计',
     'finance:purchase-stat': '低值耗材出库数据统计',
     'finance:thingsStock-stat': '资产入库统计',
+    'finance:zichanThingsStock-stat': '资产盘存统计',
     'finance:thingsStock-out-stat': '资产出库统计',
   };
 

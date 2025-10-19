@@ -2,52 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { Button, Card, Col, Form, Row, Select, Space, message } from 'antd';
 import { PageContainer, ProTable, ProColumns } from '@ant-design/pro-components';
 import * as XLSX from 'xlsx';
-
-// Mock 数据模拟
-const generateMockData = (count: number, year: number, month: number): any[] => {
-  const products = [
-    '笔记本电脑', '打印机', '办公桌', '椅子', '键盘', '鼠标', '显示器', '投影仪', '扫描仪', '电话机',
-  ];
-  const brands = ['联想', '惠普', '戴尔', '华为', '苹果', '小米', '华硕', '三星', '宏碁', '清华同方'];
-  const models = ['ThinkPad X1', 'HP LaserJet', 'Dell OptiPlex', 'MateBook', 'MacBook Pro', 'Redmi Book', 'ASUS ZenBook', 'Samsung Galaxy', 'Acer Swift', 'Tongfang T600'];
-  const units = ['台', '台', '张', '把', '个', '个', '台', '台', '台', '部'];
-  const prices = [5000, 2000, 800, 300, 100, 50, 3000, 5000, 2000, 800];
-
-  // 模拟多个入库批次
-  const batches = Array.from({ length: 3 }, (_, i) => ({
-    quantity: Math.floor(Math.random() * 50),
-    price: prices[Math.floor(Math.random() * prices.length)],
-  }));
-
-  return Array.from({ length: count }, (_, i) => {
-    const batch = batches[i % batches.length];
-    const totalQuantity = batch.quantity;
-    const totalPrice = batch.price * totalQuantity;
-
-    return {
-      id: `item-${i + 1}`,
-      productName: products[i % products.length],
-      brand: brands[i % brands.length],
-      model: models[i % models.length],
-      unit: units[i % units.length],
-      quantity: totalQuantity,
-      price: batch.price,
-      totalAmount: totalPrice,
-    };
-  });
-};
+// Add axios for API requests
+import { request } from '@umijs/max';
 
 interface DataType {
   id: string;
   productName: string;
-  brand: string;
-  model: string;
+  brandName: string;
+  spec: string;
   unit: string;
-  quantity: number;
+  totalQuantity: number;
   price: number;
   totalAmount: number;
 }
-
+// 增加所属校区筛选条件：全部、小学部、初中部、其他（除小学和初中以外的全部角色）
 const ApplicationListPage: React.FC = () => {
   const [dataList, setListData] = useState<DataType[]>([]);
   const [loading, setLoading] = useState(false);
@@ -56,21 +24,32 @@ const ApplicationListPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
   const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth() + 1); // 当前月
   const [currYear, setCurrYear] = useState<number>(new Date().getFullYear()); // 当前年
+  const [currSchoolSection, setCurrSchoolSection] = useState<number>(0);
 
-  // 使用 mock 数据
+  // Fetch data from API
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [page, pageSize, currYear, currMonth]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 模拟延迟
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Replace mock data with API call
+      const response = await request('/api/stat/fixedAssetOut', {
+        method: 'POST',
+        data: {
+          year: currYear,
+          month: currMonth,
+          page: page,
+          pageSize: pageSize,
+          schoolSection: currSchoolSection
+        }
+      });
 
-      const mockData = generateMockData(16, currYear, currMonth); // 生成 16 条 mock 数据
-      setListData(mockData);
-      setTotal(mockData.length);
+      // Assuming the API returns data in response.data
+      const apiData = response.data;
+      setListData(apiData.records || []);
+      setTotal(apiData.total || 0);
     } catch (error) {
       message.error('获取数据失败');
       setListData([]);
@@ -90,10 +69,10 @@ const ApplicationListPage: React.FC = () => {
     const exportData = dataList.map((item, index) => ({
       '序号': index + 1,
       '资产名称': item.productName,
-      '品牌': item.brand,
-      '规格型号': item.model,
+      '品牌': item.brandName,
+      '规格型号': item.spec,
       '单位': item.unit,
-      '数量': item.quantity,
+      '数量': item.totalQuantity,
       '单价': item.price,
       '总金额': item.totalAmount,
     }));
@@ -125,13 +104,13 @@ const ApplicationListPage: React.FC = () => {
     },
     {
       title: '品牌',
-      dataIndex: 'brand',
+      dataIndex: 'brandName',
       valueType: 'text',
       width: 120,
     },
     {
       title: '规格型号',
-      dataIndex: 'model',
+      dataIndex: 'spec',
       valueType: 'text',
       width: 150,
     },
@@ -143,7 +122,7 @@ const ApplicationListPage: React.FC = () => {
     },
     {
       title: '数量',
-      dataIndex: 'quantity',
+      dataIndex: 'totalQuantity',
       valueType: 'digit',
       width: 100,
     },
@@ -190,6 +169,19 @@ const ApplicationListPage: React.FC = () => {
                 {i + 1}月
               </Select.Option>
             ))}
+          </Select>
+        </Form.Item>
+        <Form.Item label="选择校区" style={{ marginTop: 16 }}>
+          <Select
+            key="schoolSection"
+            style={{ width: 120 }}
+            value={currSchoolSection}
+            onChange={(value) => setCurrSchoolSection(value)}
+          >
+            <Select.Option value={0}>全部</Select.Option>
+            <Select.Option value={1}>小学部</Select.Option>
+            <Select.Option value={2}>初中部</Select.Option>
+            <Select.Option value={3}>其他</Select.Option>
           </Select>
         </Form.Item>
         <Form.Item style={{ marginTop: 16 }}>

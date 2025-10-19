@@ -163,7 +163,7 @@ export default [
         path: "/finance/zichanThingsStock-stat",
         name: "资产盘存统计",
         component: "./finance/zichanData-overview",
-        access: "finance:thingsStock-stat",
+        access: "finance:zichanThingsStock-stat",
       },
       {
         path: "/finance/thingsStock-stat",

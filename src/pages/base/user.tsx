@@ -17,6 +17,7 @@ interface User {
   name: string;
   signatureImageUrl: string;
   phoneNumber: string;
+  schoolSection: number;
   email: string;
   position: string;
   role: string;
@@ -37,6 +38,7 @@ interface UserAddParams {
   name: string;
   email: string;
   phonenumber: string;
+  schoolSection: number;
   position: string;
   password: string;
   roleIds: number[];
@@ -51,6 +53,7 @@ interface UserEditParams {
   name: string;
   email: string;
   phonenumber: string;
+  schoolSection: number;
   signatureImageUrl: string;
   position: string;
   roleIds: number[];
@@ -95,7 +98,7 @@ interface RoleQueryResponse {
     total: number;
   };
 }
-
+// 新增用户, 编辑用户, 用户列表查询, 接口增加所属校区：1: 小学部、2: 初中部、3: 其他（除小学和初中以外的全部角色）
 const UserManagement: React.FC = () => {
   const [data, setData] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]); // 新增角色数据状态
@@ -152,6 +155,7 @@ const UserManagement: React.FC = () => {
         initialPassword: '******', // 密码不返回，显示为******
         name: item.name,
         phoneNumber: item.phoneNumber,
+        schoolSection: item.schoolSection,
         email: item.email,
         signatureImageUrl: item.signatureImageUrl,
         position: item.position,
@@ -238,6 +242,7 @@ const UserManagement: React.FC = () => {
         name: values.name,
         email: values.email,
         phonenumber: values.phoneNumber,
+        schoolSection: values.schoolSection,
         position: values.position,
         password: values.initialPassword,
         roleIds: Array.isArray(values.role) ? values.role : [values.role], // 处理多选情况
@@ -274,6 +279,7 @@ const UserManagement: React.FC = () => {
       name: record.name,
       signatureImageUrl: record.signatureImageUrl,
       phoneNumber: record.phoneNumber,
+      schoolSection: record.schoolSection,
       email: record.email,
       position: record.position,
       role: userRoleIds, // 使用角色ID
@@ -294,6 +300,7 @@ const UserManagement: React.FC = () => {
         name: values.name,
         email: values.email,
         phonenumber: values.phoneNumber,
+        schoolSection: values.schoolSection,
         position: values.position,
         signatureImageUrl: values.signatureImageUrl || '',
         roleIds: Array.isArray(values.role) ? values.role : [values.role], // 处理多选情况
@@ -576,6 +583,19 @@ const UserManagement: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
+          <Form.Item
+            name="schoolSection"
+            label="校区"
+            rules={[{ required: true, message: '请选择校区' }]}
+          >
+            <Select
+              placeholder="请选择校区"
+            >
+              <Option value={1}>小学部</Option>
+              <Option value={2}>初中部</Option>
+              <Option value={3}>其他</Option>
+            </Select>
+          </Form.Item>
           {/* <Form.Item
             name="signatureImageUrl"
             label="签名"
@@ -664,6 +684,19 @@ const UserManagement: React.FC = () => {
                   {role.roleName}
                 </Option>
               ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="schoolSection"
+            label="校区"
+            rules={[{ required: true, message: '请选择校区' }]}
+          >
+            <Select
+              placeholder="请选择校区"
+            >
+              <Option value={1}>小学部</Option>
+              <Option value={2}>初中部</Option>
+              <Option value={3}>其他</Option>
             </Select>
           </Form.Item>
           <Form.Item

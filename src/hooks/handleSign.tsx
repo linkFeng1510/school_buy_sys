@@ -11,7 +11,12 @@ export const useHandleSign = () => {
     const { initialState } = useModel('@@initialState');
     const { currentUser } = initialState || {};
     const [signForm] = Form.useForm();
+
   const handleSign = (modal: any, currOrder: ItemData) => {
+    console.log(currOrder, 'currOrder');
+    const isFixedAssetFlag = currOrder.items.some((itemss: { isFixedAsset : number })=>{
+      return itemss.isFixedAsset === 1
+    })
     const onFinish = async (values: any) => {
       // Modal.confirm({
       //   title: '确认签收',
@@ -22,13 +27,15 @@ export const useHandleSign = () => {
       //   closable: true,
       // });
 
-      const params = {
+      let params: any = {
         userId: currentUser?.userId,
         userName: currentUser?.name,
         signatureImageUrl: currentUser?.signName,
         orderId: currOrder.orderId,
-        storagePath: values.location,
       };
+      if(isFixedAssetFlag){
+        params['storagePath'] = values.location || ''
+      }
       const response = await request('/api/claim/receive', {
         method: 'POST',
         data: params
@@ -102,12 +109,13 @@ export const useHandleSign = () => {
                   </>
                 )}
               </Form.List>
-              <Form.Item label="存放地点" rules={[{ required: true, message: '请输入存放地点' }]} required name="location">
+              {/* 只有是资产才有存放地址 */}
+              {isFixedAssetFlag &&<Form.Item label="存放地点" rules={[{ required: true, message: '请输入存放地点' }]} required name="location">
                 <Input
                   style={{ width: 160 }}
                   placeholder="请输入存放地点"
                 />
-              </Form.Item>
+              </Form.Item>}
               {productNumHandler(currOrder.items)}
               <Form.Item style={{ textAlign: 'right', marginTop: 24 }}>
                 <Button onClick={rejectHandler} style={{ marginRight: 8 }}>取消</Button>
@@ -115,9 +123,7 @@ export const useHandleSign = () => {
               </Form.Item>
             </Form>
           </div>
-
         </>
-
       ),
       footer: null,
       closable: true,
