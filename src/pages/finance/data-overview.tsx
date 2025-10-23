@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Card, Col, Form, Row, Select, Space, message } from 'antd';
 import { PageContainer, ProTable, ProColumns } from '@ant-design/pro-components';
+import { request } from '@umijs/max';
 
 // Add this utility function for CSV generation
 const convertToCSV = (data: DataType[]): string => {
@@ -47,30 +48,6 @@ const downloadCSV = (csvContent: string, filename: string) => {
   document.body.removeChild(link);
 };
 
-// Mock 数据模拟
-const generateMockData = (count: number): any[] => {
-  const products = [
-    '笔记本电脑', '打印机', '办公桌', '椅子', '键盘', '鼠标', '显示器', '投影仪', '扫描仪', '电话机',
-  ];
-  const units = ['台', '台', '张', '把', '个', '个', '台', '台', '台', '部'];
-  const prices = [5000, 2000, 800, 300, 100, 50, 3000, 5000, 2000, 800];
-
-  return Array.from({ length: count }, (_, i) => ({
-    id: `item-${i + 1}`,
-    productName: products[i % products.length],
-    unit: units[i % units.length],
-    price: prices[i % prices.length],
-    initialQuantity: Math.floor(Math.random() * 100),
-    initialAmount: Math.floor(Math.random() * 10000),
-    increaseQuantity: Math.floor(Math.random() * 50),
-    increaseAmount: Math.floor(Math.random() * 5000),
-    decreaseQuantity: Math.floor(Math.random() * 30),
-    decreaseAmount: Math.floor(Math.random() * 3000),
-    finalQuantity: Math.floor(Math.random() * 120),
-    finalAmount: Math.floor(Math.random() * 15000),
-  }));
-};
-
 interface DataType {
   id: string;
   productName: string;
@@ -86,29 +63,51 @@ interface DataType {
   finalAmount: number;
 }
 
+// Define API response interface
+interface ApiResponse {
+  code: number;
+  data: DataType[];
+  message: string;
+}
+
 const ApplicationListPage: React.FC = () => {
   const [dataList, setListData] = useState<DataType[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth()); // 当前月前一个月
+  // 当前月前一个月
+
+  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth());
+  // 当前年
   const [currYear, setCurrYear] = useState<number>(new Date().getFullYear()); // 当前年
 
-  // 使用 mock 数据
+  // Use real API data instead of mock data
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currYear, currMonth, page, pageSize]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 模拟延迟
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const mockData = generateMockData(16); // 生成 10 条 mock 数据
-      setListData(mockData);
-      setTotal(mockData.length);
+      // Replace mock data with real API call
+      const result = await request(`/api/stat/lowValueItem/statistics`,{
+        method: 'POST',
+        data: {
+          year: currYear,
+          month: currMonth,
+          page: page,
+          size: pageSize
+        }
+      });
+      if (result.code === 200) {
+        setListData(result.data.records || []);
+        setTotal(result.data.total || 0);
+      } else {
+        message.error(result.message || '获取数据失败');
+        setListData([]);
+        setTotal(0);
+      }
     } catch (error) {
       message.error('获取数据失败');
       setListData([]);
@@ -118,17 +117,32 @@ const ApplicationListPage: React.FC = () => {
     }
   };
 
-  const handleExport = () => {
-    if (dataList.length === 0) {
-      message.warning('没有数据可导出');
-      return;
-    }
-
+  const handleExport = async () => {
     try {
-      const csvContent = convertToCSV(dataList);
-      const sheetName = '低值易耗品盘存表';
-      const fileName = `${sheetName}_${currYear}年${currMonth + 1}月.csv`;
-      downloadCSV(csvContent, fileName);
+      const response = await request('/api/stat/download/lowValueItem', {
+        method: 'POST',
+        data: {
+          year: currYear,
+          month: currMonth
+        },
+        responseType: 'blob' // Important for handling file downloads
+      });
+      // Create download link and trigger download
+      const blob = new Blob([response]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const fileName = `低值易耗品盘存表_${currYear}年${currMonth}月.pdf`; // Assuming it's a PDF file
+
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+
+      document.body.appendChild(link);
+      link.click();
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
       message.success('数据导出成功');
     } catch (error) {
       message.error('数据导出失败');
@@ -241,7 +255,7 @@ const ApplicationListPage: React.FC = () => {
             onChange={(value) => setCurrYear(value)}
           >
             {[...Array(5)].map((_, i) => (
-              <Select.Option key={new Date().getFullYear() - i} value={new Date().getFullYear() - i}>
+              <Select.Option key={new Date().getFullYear() - i} value={new Date().getFullYear() - i} disabled={currYear === new Date().getFullYear() - i}>
                 {new Date().getFullYear() - i}年
               </Select.Option>
             ))}
@@ -251,11 +265,11 @@ const ApplicationListPage: React.FC = () => {
           <Select
             key="month"
             style={{ width: 120 }}
-            value={currMonth + 1}
-            onChange={(value) => setCurrMonth(value - 1)}
+            value={currMonth}
+            onChange={(value) => setCurrMonth(value)}
           >
             {[...Array(12)].map((_, i) => (
-              <Select.Option key={i + 1} value={i + 1}>
+              <Select.Option key={i + 1} value={i + 1} disabled={currYear === new Date().getFullYear() && i + 1 > new Date().getMonth() + 1}>
                 {i + 1}月
               </Select.Option>
             ))}
@@ -275,6 +289,10 @@ const ApplicationListPage: React.FC = () => {
         columns={columns}
         dataSource={dataList}
         pagination={{ total, current: page, pageSize }}
+        onChange={(pagination) => {
+          setPage(pagination.current || 1);
+          setPageSize(pagination.pageSize || 10);
+        }}
         toolBarRender={false}
         bordered
         search={false}

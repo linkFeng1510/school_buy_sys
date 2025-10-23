@@ -561,6 +561,13 @@ const FixedThingsEntry: React.FC = () => {
             <Form.Item label="资产分类" name="fixedAssetId" >
               <Select
                 placeholder="请选择资产分类"
+                showSearch
+                filterOption={(input, option) =>
+                  String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                filterSort={(optionA, optionB) =>
+                  String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                }
               >
                 {categories.map(unit => (
                   <Option key={unit.fixedAssetId} value={unit.fixedAssetId}>
@@ -583,6 +590,13 @@ const FixedThingsEntry: React.FC = () => {
             >
               <Select
                 placeholder="请选择单位"
+                showSearch
+                filterOption={(input, option) =>
+                  String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                filterSort={(optionA, optionB) =>
+                  String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                }
                 loading={loading.units}
               >
                 {units.map(unit => (
@@ -651,11 +665,19 @@ const FixedThingsEntry: React.FC = () => {
                     <Form.Item
                       label="申购申请人"
                       name="applyUser"
+
                       rules={[{ required: true, message: "请选择申购申请人" }]}
                       required
                     >
                       <Select
                         placeholder="请选择申购申请人"
+                        showSearch
+                        filterOption={(input, option) =>
+                          String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                        }
+                        filterSort={(optionA, optionB) =>
+                          String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                        }
                         loading={users.length === 0 && purchaseType === '2'}
                       >
                         {users.map(user => (
@@ -727,6 +749,13 @@ const FixedThingsEntry: React.FC = () => {
                 >
                   <Select
                     placeholder="请选择申购申请人"
+                    showSearch
+                    filterOption={(input, option) =>
+                      String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    filterSort={(optionA, optionB) =>
+                      String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                    }
                     loading={users.length === 0 && purchaseType === '2'}
                   >
                     {users.map(user => (

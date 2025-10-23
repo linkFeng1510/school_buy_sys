@@ -2,30 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Card, Col, Form, Row, Select, Space, message } from 'antd';
 import { PageContainer, ProTable, ProColumns } from '@ant-design/pro-components';
 import * as XLSX from 'xlsx';
-
-// Mock 数据模拟
-const generateMockData = (count: number): any[] => {
-  const products = [
-    '笔记本电脑', '打印机', '办公桌', '椅子', '键盘', '鼠标', '显示器', '投影仪', '扫描仪', '电话机',
-  ];
-  const units = ['台', '台', '张', '把', '个', '个', '台', '台', '台', '部'];
-  const prices = [5000, 2000, 800, 300, 100, 50, 3000, 5000, 2000, 800];
-
-  return Array.from({ length: count }, (_, i) => ({
-    id: `item-${i + 1}`,
-    productName: products[i % products.length],
-    unit: units[i % units.length],
-    price: prices[i % prices.length],
-    initialQuantity: Math.floor(Math.random() * 100),
-    initialAmount: Math.floor(Math.random() * 10000),
-    increaseQuantity: Math.floor(Math.random() * 50),
-    increaseAmount: Math.floor(Math.random() * 5000),
-    decreaseQuantity: Math.floor(Math.random() * 30),
-    decreaseAmount: Math.floor(Math.random() * 3000),
-    finalQuantity: Math.floor(Math.random() * 120),
-    finalAmount: Math.floor(Math.random() * 15000),
-  }));
-};
+import { request } from '@umijs/max';
 
 interface DataType {
   id: string;
@@ -42,29 +19,52 @@ interface DataType {
   finalAmount: number;
 }
 
+// Define API response interface
+interface ApiResponse {
+  code: number;
+  data: DataType[];
+  message: string;
+}
+
 const ApplicationListPage: React.FC = () => {
   const [dataList, setListData] = useState<DataType[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth()); // 当前月前一个月
+  // 当前月前一个月
+
+  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth());
+  // 当前年
   const [currYear, setCurrYear] = useState<number>(new Date().getFullYear()); // 当前年
 
-  // 使用 mock 数据
+  // Use real API data instead of mock data
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currYear, currMonth, page, pageSize]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 模拟延迟
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Replace mock data with real API call
+      const result = await request(`/api/stat/fixedAsset/statistics`,{
+        method: 'POST',
+        data: {
+          year: currYear,
+          month: currMonth,
+          page: page,
+          size: pageSize
+        }
+      });
 
-      const mockData = generateMockData(16); // 生成 16 条 mock 数据
-      setListData(mockData);
-      setTotal(mockData.length);
+      if (result.code === 200) {
+        setListData(result.data.records || []);
+        setTotal(result.data.total || 0);
+      } else {
+        message.error(result.message || '获取数据失败');
+        setListData([]);
+        setTotal(0);
+      }
     } catch (error) {
       message.error('获取数据失败');
       setListData([]);
@@ -74,36 +74,38 @@ const ApplicationListPage: React.FC = () => {
     }
   };
 
-  const handleExport = () => {
-    if (!dataList || dataList.length === 0) {
-      message.warning('暂无数据可导出');
-      return;
+  const handleExport = async () => {
+    try {
+      const response = await request('/api/stat/download/fixedAsset', {
+        method: 'POST',
+        data: {
+          year: currYear,
+          month: currMonth
+        },
+        responseType: 'blob' // Important for handling file download
+      });
+
+      // Create a blob URL and trigger download
+      const blob = new Blob([response]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const fileName = `资产统计_${currYear}年${currMonth + 1}月.pdf`;
+
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      message.success('导出成功！');
+    } catch (error) {
+      message.error('导出失败，请重试');
     }
-
-    // 构建导出数据
-    const exportData = dataList.map(item => ({
-      '序号': item.id,
-      '资产名称': item.productName,
-      '单位': item.unit,
-      '单价': item.price,
-      '期初数-数量': item.initialQuantity,
-      '期初数-金额': item.initialAmount,
-      '本期增加-数量': item.increaseQuantity,
-      '本期增加-金额': item.increaseAmount,
-      '本期减少-数量': item.decreaseQuantity,
-      '本期减少-金额': item.decreaseAmount,
-      '期末数-数量': item.finalQuantity,
-      '期末数-金额': item.finalAmount,
-    }));
-
-    // 创建工作簿
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, '资产统计');
-
-    // 导出文件
-    XLSX.writeFile(workbook, `资产统计_${currYear}年${currMonth + 1}月.xlsx`);
-    message.success('导出成功！');
   };
 
   const columns: ProColumns<DataType>[] = [
@@ -232,7 +234,7 @@ const ApplicationListPage: React.FC = () => {
             onChange={(value) => setCurrYear(value)}
           >
             {[...Array(5)].map((_, i) => (
-              <Select.Option key={new Date().getFullYear() - i} value={new Date().getFullYear() - i}>
+              <Select.Option key={new Date().getFullYear() - i} value={new Date().getFullYear() - i} disabled={currYear === new Date().getFullYear() - i}>
                 {new Date().getFullYear() - i}年
               </Select.Option>
             ))}
@@ -242,11 +244,11 @@ const ApplicationListPage: React.FC = () => {
           <Select
             key="month"
             style={{ width: 120 }}
-            value={currMonth + 1}
-            onChange={(value) => setCurrMonth(value - 1)}
+            value={currMonth}
+            onChange={(value) => setCurrMonth(value)}
           >
             {[...Array(12)].map((_, i) => (
-              <Select.Option key={i + 1} value={i + 1}>
+              <Select.Option key={i + 1} value={i + 1} disabled={currYear === new Date().getFullYear() && i + 1 > new Date().getMonth() + 1}>
                 {i + 1}月
               </Select.Option>
             ))}

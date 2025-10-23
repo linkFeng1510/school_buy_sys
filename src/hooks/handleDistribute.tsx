@@ -153,6 +153,13 @@ export const useHandleDistribute = () => {
                 <Select
                   placeholder="请选择申购申请人"
                   loading={loadingUsers}
+                  showSearch
+                  filterOption={(input, option) =>
+                    String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  filterSort={(optionA, optionB) =>
+                    String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                  }
                   value={receiveApplyUserId}
                   onChange={(val) => {
                     setReceiveApplyUserId(val)

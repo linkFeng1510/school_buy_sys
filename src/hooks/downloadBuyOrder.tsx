@@ -5,11 +5,32 @@ import { request } from '@umijs/max';
 
 export const useDownloadBuyOrder = () => {
   const downloadBuyOrder = (modal: any, currOrder: ItemData) => {
+    const handleTime = ()=>{
+      const date = new Date(currOrder.createTime);
+      const dateString = `${date.getFullYear()}${(date.getMonth() + 1)
+        .toString()
+        .padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}${date
+        .getHours()
+        .toString()
+        .padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0') }${date
+        .getSeconds()
+        .toString()
+        .padStart(2, '0')}`;
+      return dateString;
+
+    }
     const productNameHandler = (item: any) => {
-      if (item.items) {
-        return item.items.map((child: any) => child.productName).join('、') || '暂无';
+      const isFixedAssetFlag = item.items.some((itemss: { isFixedAsset: number }) => {
+        return itemss.isFixedAsset === 1
+      })
+      let str = '';
+      if (isFixedAssetFlag) {
+        str = '固定资产采购单'
+      } else {
+        str = '低值易耗品入库单'
       }
-      return '暂无';
+      // 低值易耗品入库单 + 年月日时分秒的数字组合
+      return `${str}_${handleTime()}`;
     };
     const checkDownload = async () => {
       const response = await request(`/api/order/checkCanDownload/${currOrder.orderId}`, {

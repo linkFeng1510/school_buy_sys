@@ -13,7 +13,6 @@ export const useHandleSign = () => {
     const [signForm] = Form.useForm();
 
   const handleSign = (modal: any, currOrder: ItemData) => {
-    console.log(currOrder, 'currOrder');
     const isFixedAssetFlag = currOrder.items.some((itemss: { isFixedAsset : number })=>{
       return itemss.isFixedAsset === 1
     })

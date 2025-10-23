@@ -574,6 +574,13 @@ const UserManagement: React.FC = () => {
           >
             <Select
               placeholder="请选择角色"
+              showSearch
+              filterOption={(input, option) =>
+                String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              filterSort={(optionA, optionB) =>
+                String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+              }
               mode="multiple" // 支持多选角色
             >
               {roles.map(role => (
@@ -590,6 +597,13 @@ const UserManagement: React.FC = () => {
           >
             <Select
               placeholder="请选择校区"
+              showSearch
+              filterOption={(input, option) =>
+                String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              filterSort={(optionA, optionB) =>
+                String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+              }
             >
               <Option value={1}>小学部</Option>
               <Option value={2}>初中部</Option>
@@ -677,6 +691,13 @@ const UserManagement: React.FC = () => {
           >
             <Select
               placeholder="请选择角色"
+              showSearch
+              filterOption={(input, option) =>
+                String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              filterSort={(optionA, optionB) =>
+                String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+              }
               mode="multiple" // 支持多选角色
             >
               {roles.map(role => (
@@ -692,6 +713,13 @@ const UserManagement: React.FC = () => {
             rules={[{ required: true, message: '请选择校区' }]}
           >
             <Select
+              showSearch
+              filterOption={(input, option) =>
+                String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              filterSort={(optionA, optionB) =>
+                String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+              }
               placeholder="请选择校区"
             >
               <Option value={1}>小学部</Option>

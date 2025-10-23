@@ -22,7 +22,10 @@ const ApplicationListPage: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth() + 1); // 当前月
+  // 当前月前一个月
+
+  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth());
+  // 当前年
   const [currYear, setCurrYear] = useState<number>(new Date().getFullYear()); // 当前年
   const [currSchoolSection, setCurrSchoolSection] = useState<number>(0);
 
@@ -59,33 +62,39 @@ const ApplicationListPage: React.FC = () => {
     }
   };
 
-  const handleExport = () => {
-    if (!dataList || dataList.length === 0) {
-      message.warning('暂无数据可导出');
-      return;
+  const handleExport = async () => {
+    try {
+      const response = await request('/api/stat/lowValueOut/download', {
+        method: 'POST',
+        data: {
+          year: currYear,
+          month: currMonth,
+          schoolSection: currSchoolSection
+        },
+        responseType: 'blob' // Important for handling file download
+      });
+
+      // Create a blob URL and trigger download
+      const blob = new Blob([response]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const fileName = `低值耗材出库统计_${currYear}年${currMonth}月.pdf`;
+
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      message.success('导出成功！');
+    } catch (error) {
+      message.error('导出失败，请重试');
     }
-
-    // 构建导出数据
-    const exportData = dataList.map((item, index) => ({
-      '序号': index + 1,
-      '物品名称': item.productName,
-      '品牌': item.brandName,
-      '规格型号': item.spec,
-      '单位': item.unit,
-      '数量': item.totalQuantity,
-      '单价': item.price,
-      '总金额': item.totalAmount,
-    }));
-
-    // 创建工作簿
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    const worksheetName = '低值耗材出库统计';
-    XLSX.utils.book_append_sheet(workbook, worksheet, worksheetName);
-
-    // 导出文件
-    XLSX.writeFile(workbook, `${worksheetName}_${currYear}年${currMonth}月.xlsx`);
-    message.success('导出成功！');
   };
 
   const columns: ProColumns<DataType>[] = [
@@ -150,7 +159,7 @@ const ApplicationListPage: React.FC = () => {
             onChange={(value) => setCurrYear(value)}
           >
             {[...Array(5)].map((_, i) => (
-              <Select.Option key={new Date().getFullYear() - i} value={new Date().getFullYear() - i}>
+              <Select.Option key={new Date().getFullYear() - i} value={new Date().getFullYear() - i} disabled={currYear === new Date().getFullYear() - i}>
                 {new Date().getFullYear() - i}年
               </Select.Option>
             ))}
@@ -164,7 +173,7 @@ const ApplicationListPage: React.FC = () => {
             onChange={(value) => setCurrMonth(value)}
           >
             {[...Array(12)].map((_, i) => (
-              <Select.Option key={i + 1} value={i + 1}>
+              <Select.Option key={i + 1} value={i + 1} disabled={currYear === new Date().getFullYear() && i + 1 > new Date().getMonth() + 1}>
                 {i + 1}月
               </Select.Option>
             ))}

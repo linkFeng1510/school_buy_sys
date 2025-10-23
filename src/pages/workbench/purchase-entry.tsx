@@ -587,6 +587,13 @@ const PurchaseEntry: React.FC = () => {
             >
               <Select
                 placeholder="请选择单位"
+                showSearch
+                filterOption={(input, option) =>
+                  String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                filterSort={(optionA, optionB) =>
+                  String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                }
                 loading={loading.units}
               >
                 {units.map(unit => (
@@ -660,6 +667,13 @@ const PurchaseEntry: React.FC = () => {
                     >
                     <Select
                     placeholder="请选择申购申请人"
+                        showSearch
+                        filterOption={(input, option) =>
+                          String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                        }
+                        filterSort={(optionA, optionB) =>
+                          String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                        }
                     loading={users.length === 0 && purchaseType === '2'}
                   >
                     {users.map(user => (
@@ -730,6 +744,13 @@ const PurchaseEntry: React.FC = () => {
                 >
                   <Select
                     placeholder="请选择申购申请人"
+                    showSearch
+                    filterOption={(input, option) =>
+                      String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    filterSort={(optionA, optionB) =>
+                      String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                    }
                     loading={users.length === 0 && purchaseType === '2'}
                   >
                     {users.map(user => (
