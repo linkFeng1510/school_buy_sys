@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Col, Form, Row, Select, Space, message } from 'antd';
+import { Button, Card, Col, Form, Row, Select, Space, message, Modal } from 'antd';
 import { PageContainer, ProTable, ProColumns } from '@ant-design/pro-components';
 import * as XLSX from 'xlsx';
 // Add axios for API requests
@@ -15,6 +15,20 @@ interface DataType {
   price: number;
   totalAmount: number;
 }
+
+// User interface for approvers
+interface User {
+  userId: string;
+  name: string;
+}
+
+// API response interface for user query
+interface UserQueryResponse {
+  code: number;
+  data: User[];
+  message: string;
+}
+
 // 增加所属校区筛选条件：全部、小学部、初中部、其他（除小学和初中以外的全部角色）
 const ApplicationListPage: React.FC = () => {
   const [dataList, setListData] = useState<DataType[]>([]);
@@ -24,10 +38,16 @@ const ApplicationListPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
   // 当前月前一个月
 
-  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth());
+  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth() + 1);
   // 当前年
   const [currYear, setCurrYear] = useState<number>(new Date().getFullYear()); // 当前年
   const [currSchoolSection, setCurrSchoolSection] = useState<number>(0);
+
+  // Approval person selection states
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [approvers, setApprovers] = useState<User[]>([]);
+  const [selectedApprover, setSelectedApprover] = useState<string | undefined>(undefined);
+  const [approverLoading, setApproverLoading] = useState(false);
 
   // Fetch data from API
   useEffect(() => {
@@ -45,7 +65,7 @@ const ApplicationListPage: React.FC = () => {
           month: currMonth,
           page: page,
           pageSize: pageSize,
-          schoolSection: currSchoolSection
+          schoolSection: currSchoolSection ? currSchoolSection : ''
         }
       });
 
@@ -62,13 +82,48 @@ const ApplicationListPage: React.FC = () => {
     }
   };
 
+  // Fetch approvers from API
+  const fetchApprovers = async () => {
+    setApproverLoading(true);
+    try {
+      const result = await request<UserQueryResponse>('/api/user/query',{
+        method: 'POST',
+        data: {
+          isFixedAsset: 1
+        }
+      });
+      if (result.code === 200) {
+        setApprovers(result.data || []);
+      } else {
+        message.error(result.message || '获取审批人列表失败');
+      }
+    } catch (error) {
+      message.error('获取审批人列表失败');
+    } finally {
+      setApproverLoading(false);
+    }
+  };
+
   const handleExport = async () => {
+    // Fetch approvers and show modal
+    await fetchApprovers();
+    setIsModalVisible(true);
+  };
+
+  const handleModalOk = async () => {
+    if (!selectedApprover) {
+      message.warning('请选择审批人');
+      return;
+    }
+
     try {
       const response = await request('/api/stat/fixedAssetOut/download', {
         method: 'POST',
         data: {
           year: currYear,
-          month: currMonth
+          month: currMonth,
+          applyUserSchoolSection: currSchoolSection ? currSchoolSection : '',
+          fixedAssetUserId: selectedApprover
         },
         responseType: 'blob' // Important for handling file download
       });
@@ -91,9 +146,16 @@ const ApplicationListPage: React.FC = () => {
       window.URL.revokeObjectURL(url);
 
       message.success('导出成功！');
+      setIsModalVisible(false);
+      setSelectedApprover(undefined);
     } catch (error) {
       message.error('导出失败，请重试');
     }
+  };
+
+  const handleModalCancel = () => {
+    setIsModalVisible(false);
+    setSelectedApprover(undefined);
   };
 
   const columns: ProColumns<DataType>[] = [
@@ -211,6 +273,38 @@ const ApplicationListPage: React.FC = () => {
         loading={loading}
         rowKey="id"
       />
+
+      {/* Approval Person Selection Modal */}
+      <Modal
+        title="选择审批人"
+        visible={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+        confirmLoading={approverLoading}
+        okText="确认导出"
+        cancelText="取消"
+      >
+        <Form.Item
+          label="审批人"
+          required
+          style={{ marginBottom: 0 }}
+        >
+          <Select
+            placeholder="请选择审批人"
+            value={selectedApprover}
+            onChange={setSelectedApprover}
+            loading={approverLoading}
+            showSearch
+            optionFilterProp="children"
+          >
+            {approvers.map(user => (
+              <Select.Option key={user.userId} value={user.userId}>
+                {user.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+      </Modal>
     </PageContainer>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Col, Form, Row, Select, Space, message } from 'antd';
+import { Button, Card, Col, Form, Row, Select, Space, message, Modal } from 'antd';
 import { PageContainer, ProTable, ProColumns } from '@ant-design/pro-components';
 import * as XLSX from 'xlsx';
 import { request } from '@umijs/max';
@@ -19,10 +19,23 @@ interface DataType {
   finalAmount: number;
 }
 
+// User interface for approvers
+interface User {
+  userId: string;
+  name: string;
+}
+
 // Define API response interface
 interface ApiResponse {
   code: number;
   data: DataType[];
+  message: string;
+}
+
+// User query response interface
+interface UserQueryResponse {
+  code: number;
+  data: User[];
   message: string;
 }
 
@@ -34,9 +47,17 @@ const ApplicationListPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
   // 当前月前一个月
 
-  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth());
+  const [currMonth, setCurrMonth] = useState<number>(new Date().getMonth() + 1);
   // 当前年
   const [currYear, setCurrYear] = useState<number>(new Date().getFullYear()); // 当前年
+
+  // Inventory taker and supervisor selection states
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [inventoryTakers, setInventoryTakers] = useState<User[]>([]);
+  const [supervisors, setSupervisors] = useState<User[]>([]);
+  const [selectedInventoryTaker, setSelectedInventoryTaker] = useState<string | undefined>(undefined);
+  const [selectedSupervisor, setSelectedSupervisor] = useState<string | undefined>(undefined);
+  const [userLoading, setUserLoading] = useState(false);
 
   // Use real API data instead of mock data
   useEffect(() => {
@@ -47,7 +68,7 @@ const ApplicationListPage: React.FC = () => {
     setLoading(true);
     try {
       // Replace mock data with real API call
-      const result = await request(`/api/stat/fixedAsset/statistics`,{
+      const result = await request(`/api/stat/fixedAsset/statistics`, {
         method: 'POST',
         data: {
           year: currYear,
@@ -74,13 +95,72 @@ const ApplicationListPage: React.FC = () => {
     }
   };
 
+  // Fetch inventory takers from API
+  const fetchInventoryTakers = async () => {
+    setUserLoading(true);
+    try {
+      const result = await request<UserQueryResponse>('/api/user/query', {
+        method: 'POST',
+        data: {
+          isFixedAsset: 1
+        }
+      });
+      if (result.code === 200) {
+        setInventoryTakers(result.data || []);
+      } else {
+        message.error(result.message || '获取盘点人列表失败');
+      }
+    } catch (error) {
+      message.error('获取盘点人列表失败');
+    }
+  };
+
+  // Fetch supervisors from API
+  const fetchSupervisors = async () => {
+    try {
+      const result = await request<UserQueryResponse>('/api/user/query', {
+        method: 'POST',
+        data: {
+          isFixedAsset: 0
+        }
+      });
+      if (result.code === 200) {
+        setSupervisors(result.data || []);
+      } else {
+        message.error(result.message || '获取监盘人列表失败');
+      }
+    } catch (error) {
+      message.error('获取监盘人列表失败');
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
   const handleExport = async () => {
+    // Fetch users and show modal
+    await Promise.all([fetchInventoryTakers(), fetchSupervisors()]);
+    setIsModalVisible(true);
+  };
+
+  const handleModalOk = async () => {
+    if (!selectedInventoryTaker) {
+      message.warning('请选择盘点人');
+      return;
+    }
+
+    if (!selectedSupervisor) {
+      message.warning('请选择监盘人');
+      return;
+    }
+
     try {
       const response = await request('/api/stat/download/fixedAsset', {
         method: 'POST',
         data: {
           year: currYear,
-          month: currMonth
+          month: currMonth,
+          fixedAssetUserId: selectedInventoryTaker,
+          lowValueUserId: selectedSupervisor
         },
         responseType: 'blob' // Important for handling file download
       });
@@ -89,7 +169,7 @@ const ApplicationListPage: React.FC = () => {
       const blob = new Blob([response]);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      const fileName = `资产统计_${currYear}年${currMonth + 1}月.pdf`;
+      const fileName = `资产统计_${currYear}年${currMonth}月.pdf`;
 
       link.href = url;
       link.download = fileName;
@@ -103,9 +183,18 @@ const ApplicationListPage: React.FC = () => {
       window.URL.revokeObjectURL(url);
 
       message.success('导出成功！');
+      setIsModalVisible(false);
+      setSelectedInventoryTaker(undefined);
+      setSelectedSupervisor(undefined);
     } catch (error) {
       message.error('导出失败，请重试');
     }
+  };
+
+  const handleModalCancel = () => {
+    setIsModalVisible(false);
+    setSelectedInventoryTaker(undefined);
+    setSelectedSupervisor(undefined);
   };
 
   const columns: ProColumns<DataType>[] = [
@@ -274,6 +363,59 @@ const ApplicationListPage: React.FC = () => {
         loading={loading}
         rowKey="id"
       />
+
+      {/* Inventory Taker and Supervisor Selection Modal */}
+      <Modal
+        title="选择盘点人和监盘人"
+        visible={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+        confirmLoading={userLoading}
+        okText="确认导出"
+        cancelText="取消"
+      >
+        <Form.Item
+          label="盘点人"
+          required
+          style={{ marginBottom: 16 }}
+        >
+          <Select
+            placeholder="请选择盘点人"
+            value={selectedInventoryTaker}
+            onChange={setSelectedInventoryTaker}
+            loading={userLoading}
+            showSearch
+            optionFilterProp="children"
+          >
+            {inventoryTakers.map(user => (
+              <Select.Option key={user.userId} value={user.userId}>
+                {user.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          label="监盘人"
+          required
+          style={{ marginBottom: 0 }}
+        >
+          <Select
+            placeholder="请选择监盘人"
+            value={selectedSupervisor}
+            onChange={setSelectedSupervisor}
+            loading={userLoading}
+            showSearch
+            optionFilterProp="children"
+          >
+            {supervisors.map(user => (
+              <Select.Option key={user.userId} value={user.userId}>
+                {user.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+      </Modal>
     </PageContainer>
   );
 };
