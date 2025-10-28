@@ -291,9 +291,7 @@ const UserManagement: React.FC = () => {
   const handleSaveEdit = async () => {
     try {
       const values = await editForm.validateFields();
-
       if (!editingUser) return;
-
       const params: UserEditParams = {
         userId: parseInt(editingUser.id, 10),
         userName: values.username,
@@ -302,7 +300,7 @@ const UserManagement: React.FC = () => {
         phonenumber: values.phoneNumber,
         schoolSection: values.schoolSection,
         position: values.position,
-        signatureImageUrl: values.signatureImageUrl || '',
+        signatureImageUrl: editingUser.signatureImageUrl || '',
         roleIds: Array.isArray(values.role) ? values.role : [values.role], // 处理多选情况
         status: values.status,
         remark: '编辑用户',

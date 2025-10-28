@@ -243,6 +243,7 @@ const PurchaseEntry: React.FC = () => {
       requestType: 'form',
     })
     message.success('订单创建成功');
+    history.push('/workbench/claim');
     handleModalOk()
   };
   const srcHandler = (fileObj: any) => {
@@ -335,7 +336,7 @@ const PurchaseEntry: React.FC = () => {
         setAddTemplateModalVisible(false);
         addTemplateForm.resetFields();
         setFileList([]);
-        history.push('/workbench/purchase-record');
+        history.push('/workbench/claim');
       } else {
         message.error(response.msg || '导入失败');
       }

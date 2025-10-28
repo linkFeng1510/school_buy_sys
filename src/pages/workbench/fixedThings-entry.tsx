@@ -28,7 +28,6 @@ import {
   ProDescriptions,
 } from "@ant-design/pro-components";
 import { request, useModel } from "@umijs/max";
-import SignName from "./components/SignName";
 
 const { Option } = Select;
 
@@ -242,6 +241,8 @@ const FixedThingsEntry: React.FC = () => {
       requestType: 'form',
     })
     message.success('订单创建成功');
+    // 页面跳转资产录入记录页
+    history.push('/workbench/fixedThings-claim');
     handleModalOk()
   };
   const srcHandler = (fileObj: any) => {

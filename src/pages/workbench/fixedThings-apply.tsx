@@ -10,7 +10,7 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { request, useModel } from '@umijs/max';
+import { request, useModel,history } from '@umijs/max';
 import ProductItem from '@/components/commonListItem';
 
 // Define the type for goods items
@@ -144,6 +144,7 @@ const ApplyRecord: React.FC = () => {
       setCart([]);
       setDrawerOpen(false);
       fetchGoods();
+      history.push('/workbench/purchase-record');
     } else {
       message.error(result.msg || '提交失败');
     }
