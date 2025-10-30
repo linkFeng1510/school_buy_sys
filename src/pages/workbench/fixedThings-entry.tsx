@@ -242,7 +242,7 @@ const FixedThingsEntry: React.FC = () => {
     })
     message.success('订单创建成功');
     // 页面跳转资产录入记录页
-    history.push('/workbench/fixedThings-claim');
+    history.push('/workbench/claim-record');
     handleModalOk()
   };
   const srcHandler = (fileObj: any) => {
@@ -334,7 +334,7 @@ const FixedThingsEntry: React.FC = () => {
         setAddTemplateModalVisible(false);
         addTemplateForm.resetFields();
         setFileList([]);
-        history.push('/workbench/purchase-record');
+        history.push('/workbench/claim-record');
       } else {
         message.error(response.msg || '导入失败');
       }

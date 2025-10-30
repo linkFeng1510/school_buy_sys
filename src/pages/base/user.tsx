@@ -739,8 +739,11 @@ const UserManagement: React.FC = () => {
                 <div className="delete-icon" style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }} onClick={() => {
                   // 删除图片
                   editForm.setFieldsValue({
-                    signatureImageUrl: null
+                    signatureImageUrl: ''
                   });
+                  if (editingUser) {
+                    setEditingUser({ ...editingUser, signatureImageUrl: '' });
+                  }
                 }}>
                   <DeleteOutlined />
                 </div>

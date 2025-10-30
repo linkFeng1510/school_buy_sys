@@ -243,7 +243,7 @@ const PurchaseEntry: React.FC = () => {
       requestType: 'form',
     })
     message.success('订单创建成功');
-    history.push('/workbench/claim');
+    history.push('/workbench/stock-entry');
     handleModalOk()
   };
   const srcHandler = (fileObj: any) => {
@@ -336,7 +336,7 @@ const PurchaseEntry: React.FC = () => {
         setAddTemplateModalVisible(false);
         addTemplateForm.resetFields();
         setFileList([]);
-        history.push('/workbench/claim');
+        history.push('/workbench/stock-entry');
       } else {
         message.error(response.msg || '导入失败');
       }
@@ -380,7 +380,7 @@ const PurchaseEntry: React.FC = () => {
               if (info.file.status === 'done') {
                 message.success(`${info.file.name} 导入成功`);
                 setTimeout(() => {
-                  history.push('/workbench/claim-record');
+                  history.push('/workbench/stock-entry-record');
                 }, 1000);
               } else if (info.file.status === 'error') {
                 message.error(`${info.file.name} 导入失败`);

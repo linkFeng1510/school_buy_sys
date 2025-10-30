@@ -65,7 +65,7 @@ const ApplicationListPage: React.FC = () => {
           month: currMonth,
           pageNum: page,
           pageSize: pageSize,
-          schoolSection: currSchoolSection ? currSchoolSection : ''
+          applyUserSchoolSection: currSchoolSection ? currSchoolSection : ''
         }
       });
 

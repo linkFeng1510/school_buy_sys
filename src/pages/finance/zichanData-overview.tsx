@@ -73,8 +73,8 @@ const ApplicationListPage: React.FC = () => {
         data: {
           year: currYear,
           month: currMonth,
-          page: page,
-          size: pageSize
+          pageNum: page,
+          pageSize: pageSize
         }
       });
 
