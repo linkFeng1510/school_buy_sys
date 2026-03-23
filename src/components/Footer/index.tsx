@@ -8,11 +8,11 @@ const Footer: React.FC = () => {
       style={{
         background: 'none',
       }}
-      copyright="学校采购系统 © 2025"
+      copyright="人亦资产管理平台 © 2025"
       links={[
         // {
-        //   key: '学校采购系统',
-        //   title: '学校采购系统',
+        //   key: '人亦资产管理平台',
+        //   title: '人亦资产管理平台',
         //   href: 'https://pro.ant.design',
         //   blankTarget: true,
         // },
@@ -23,8 +23,8 @@ const Footer: React.FC = () => {
         //   blankTarget: true,
         // },
         // {
-        //   key: 'Ant Design',
-        //   title: 'Ant Design',
+        //   key: '人亦资产管理平台',
+        //   title: '人亦资产管理平台',
         //   href: 'https://ant.design',
         //   blankTarget: true,
         // },

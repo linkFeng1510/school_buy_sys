@@ -47,7 +47,7 @@ const ApplyRecord: React.FC = () => {
     fetchGoods();
   }, []);
 
-  const fetchGoods = async () => {
+  const fetchGoods = async (search?: string) => {
     setLoading(true);
     setGoods([]);
     try {
@@ -59,7 +59,7 @@ const ApplyRecord: React.FC = () => {
           pageNum: 1,
           itemStatus: 0,
           pageSize: 1000,
-          itemName: search || '',
+          itemName: search || undefined,
         }
       });
 
@@ -77,7 +77,7 @@ const ApplyRecord: React.FC = () => {
   };
 
   // 搜索过滤
-  const filteredGoods = goods.filter(g => g.fixedAssetName&& g.fixedAssetName.includes(search));
+  const filteredGoods = goods;
 
   // 加入申领车
   const handleAdd = (item: any) => {
@@ -158,8 +158,7 @@ const ApplyRecord: React.FC = () => {
         layout="inline"
         style={{ marginBottom: 16 }}
         onFinish={values => {
-          setSearch(values.search || '');
-          fetchGoods();
+          fetchGoods(values.search);
         }}
         initialValues={{ search }}
       >
@@ -170,7 +169,6 @@ const ApplyRecord: React.FC = () => {
           <Button type="primary" htmlType="submit">查询</Button>
           <Button
             onClick={() => {
-              setSearch('');
               form.resetFields();
               fetchGoods();
             }}

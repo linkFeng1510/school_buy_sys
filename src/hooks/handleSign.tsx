@@ -31,9 +31,14 @@ export const useHandleSign = () => {
         userName: currentUser?.name,
         signatureImageUrl: currentUser?.signName,
         orderId: currOrder.orderId,
+        items:[]
       };
       if(isFixedAssetFlag){
-        params['storagePath'] = values.location || ''
+        console.log(values.items);
+        params['items'] = values.items.map((ii: { storagePath: any; itemId: any; })=>({
+          storagePath: ii.storagePath,
+          itemId: ii.itemId
+        }) )
       }
       const response = await request('/api/claim/receive', {
         method: 'POST',
@@ -98,23 +103,26 @@ export const useHandleSign = () => {
                 {(fields) => (
                   <>
                     {fields.map((field, index) => {
-                      const detail = currOrder.items?.[field.name] || currOrder;
+                      const currDetail = currOrder.items?.[field.name] || currOrder;
+                      const detail = { ...currDetail, hideStoragePath : true };
                       return (
                         <Card key={field.key} style={{ marginBottom: 16 }}>
                           <ProductItem detail={detail} />
+                          {/* 只有是资产才有存放地址 */}
+                          {isFixedAssetFlag && <Form.Item {...field}
+                            name={[field.name, 'storagePath']} label="存放地点" rules={[{ required: true, message: '请输入存放地点' }]} required >
+                            <Input
+                              style={{ width: 160 }}
+                              placeholder="请输入存放地点"
+                            />
+                          </Form.Item>}
                         </Card>
                       )
                     })}
                   </>
                 )}
               </Form.List>
-              {/* 只有是资产才有存放地址 */}
-              {isFixedAssetFlag &&<Form.Item label="存放地点" rules={[{ required: true, message: '请输入存放地点' }]} required name="location">
-                <Input
-                  style={{ width: 160 }}
-                  placeholder="请输入存放地点"
-                />
-              </Form.Item>}
+
               {productNumHandler(currOrder.items)}
               <Form.Item style={{ textAlign: 'right', marginTop: 24 }}>
                 <Button onClick={rejectHandler} style={{ marginRight: 8 }}>取消</Button>

@@ -86,7 +86,7 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  title: '学校采购系统',
+  title: '人亦资产管理平台',
   layout: {
     ...defaultSettings,
   },

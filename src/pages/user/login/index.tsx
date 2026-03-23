@@ -160,18 +160,19 @@ const Login: React.FC = () => {
         </title>
       </Helmet>
       <div
-        style={{
-          flex: "1",
-          padding: "32px 0",
-        }}
+      className="schoolBgBox"
       >
+        {/* 当是大屏时，左右显示，小屏时，上下显示  */}
+        <div className="schoolbg">
+          <img src="/schoolBg.jpg" alt="" width={'100%'}  />
+        </div>
         <LoginForm
           contentStyle={{
             minWidth: 280,
             maxWidth: "75vw",
           }}
-          logo={<img alt="logo" src="/logo.svg" />}
-          title="Ant Design"
+          logo={<img alt="logo" src="/logo.png" />}
+          title="人亦资产管理平台"
           initialValues={{
             autoLogin: true,
           }}
@@ -206,7 +207,7 @@ const Login: React.FC = () => {
                   size: "large",
                   prefix: <UserOutlined />,
                 }}
-                placeholder={"用户名: admin or user"}
+                placeholder={"用户名: 请输入用户名"}
                 rules={[
                   {
                     required: true,
@@ -220,7 +221,7 @@ const Login: React.FC = () => {
                   size: "large",
                   prefix: <LockOutlined />,
                 }}
-                placeholder={"密码: ant.design"}
+                placeholder={"密码: 请输入密码"}
                 rules={[
                   {
                     required: true,
@@ -247,7 +248,9 @@ const Login: React.FC = () => {
               忘记密码
             </a>
           </div>
+
         </LoginForm>
+
       </div>
       <Footer />
     </div>

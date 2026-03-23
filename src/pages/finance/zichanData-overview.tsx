@@ -6,17 +6,17 @@ import { request } from '@umijs/max';
 
 interface DataType {
   id: string;
-  productName: string;
+  fixedAssetName: string;
   unit: string;
   price: number;
-  initialQuantity: number;
-  initialAmount: number;
+  openingQuantity: number;
+  openingAmount: number;
   increaseQuantity: number;
   increaseAmount: number;
   decreaseQuantity: number;
   decreaseAmount: number;
-  finalQuantity: number;
-  finalAmount: number;
+  closingQuantity: number;
+  closingAmount: number;
 }
 
 // User interface for approvers
@@ -159,8 +159,8 @@ const ApplicationListPage: React.FC = () => {
         data: {
           year: currYear,
           month: currMonth,
-          fixedAssetUserId: selectedInventoryTaker,
-          lowValueUserId: selectedSupervisor
+          stockTakerId: selectedInventoryTaker,
+          auditorId: selectedSupervisor
         },
         responseType: 'blob' // Important for handling file download
       });
@@ -227,13 +227,13 @@ const ApplicationListPage: React.FC = () => {
       children: [
         {
           title: '数量',
-          dataIndex: 'initialQuantity',
+          dataIndex: 'openingQuantity',
           valueType: 'digit',
           width: 100,
         },
         {
           title: '金额',
-          dataIndex: 'initialAmount',
+          dataIndex: 'openingAmount',
           valueType: 'money',
           width: 100,
           render: (dom: React.ReactNode) => (
@@ -293,13 +293,13 @@ const ApplicationListPage: React.FC = () => {
       children: [
         {
           title: '数量',
-          dataIndex: 'finalQuantity',
+          dataIndex: 'closingQuantity',
           valueType: 'digit',
           width: 100,
         },
         {
           title: '金额',
-          dataIndex: 'finalAmount',
+          dataIndex: 'closingAmount',
           valueType: 'money',
           width: 100,
           render: (dom: React.ReactNode) => (

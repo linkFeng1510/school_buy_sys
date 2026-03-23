@@ -1,6 +1,6 @@
 {
-  "name": "学校采购系统",
-  "short_name": "学校采购系统",
+  "name": "人亦资产管理平台",
+  "short_name": "人亦资产管理平台",
   "display": "standalone",
   "start_url": "./?utm_source=homescreen",
   "theme_color": "#002140",

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Tabs, Button, Tag, List, Modal, Typography, Empty, Input, message, Space, Pagination, Row, Col, Form } from 'antd';
+import React, { useState, useEffect, use } from 'react';
+import { Card, Tabs, Button, Tag, List, Modal, Typography, Empty, Input, message, Space, Pagination, Row, Col, Form, Select } from 'antd';
 import {
   PageContainer,
 } from '@ant-design/pro-components';
+import {useModel } from '@umijs/max';
 import { request } from 'umi';
+const { Option } = Select;
 import PurchaseItemCard from './components/ProductItem';
 const statusTabs = [
   { key: '', label: '全部' },
@@ -15,13 +17,37 @@ const statusTabs = [
 const claim: React.FC = () => {
   const [tab, setTab] = useState('');
   const [searchTxt, setSearchTxt] = useState('');
+  const [warehouseSearchTxt, setWarehouseSearchTxt] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [listData, setListData] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isSuperAdmin,setIsSuperAdmin] = useState<boolean>(false);//假设不是超级管理员
 
-  const [form] = Form.useForm();
+  const [warehouseList, setWarehouseList] = useState<any[]>([]);
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  // 获取仓库列表
+  const fetchWarehouseList = async () => {
+    try {
+      const result = await request('/api/database/list', {
+        method: 'POST',
+        data: {
+          pageNum: 1,
+          pageSize: 100 // 获取所有仓库
+        }
+      });
+      if (result.code === 200) {
+        let list = result.data.records;
+        setWarehouseList(list);
+      } else {
+        message.error('获取仓库列表失败: ' + result.msg);
+      }
+    } catch (error) {
+      message.error('获取仓库列表失败');
+    }
+  };
   // Fetch data from API
   const fetchData = async () => {
     setLoading(true);
@@ -36,6 +62,14 @@ const claim: React.FC = () => {
       // Add filters if they exist
       if (searchTxt) {
         params.itemName = searchTxt;
+      }
+      if (warehouseSearchTxt) {
+        params.libId = warehouseSearchTxt;
+      }
+      if(!isSuperAdmin){
+        if ((currentUser as any)?.libId) {
+          params.libId = (currentUser as any).libId;
+        }
       }
       setListData([]);
       setTotal(0);
@@ -60,16 +94,22 @@ const claim: React.FC = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    setIsSuperAdmin(currentUser?.name === 'admin');
 
+  }, []);
+  useEffect(() => {
+    fetchWarehouseList();
+  }, [isSuperAdmin]);
   // Fetch data when dependencies change
   useEffect(() => {
     fetchData();
-  }, [searchTxt, page, pageSize, tab]);
+  }, [searchTxt, warehouseSearchTxt, page, pageSize, tab]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setPage(1);
-  }, [searchTxt, tab]);
+  }, [searchTxt, warehouseSearchTxt, tab]);
 
 
   return (
@@ -81,13 +121,33 @@ const claim: React.FC = () => {
       >
         <Form.Item style={{ marginTop: 16 }} >
           <Input
-          value={searchTxt}
-          onChange={e => setSearchTxt(e.target.value)}
+            value={searchTxt}
+            onChange={e => setSearchTxt(e.target.value)}
             placeholder="请输入品牌名、商品名"
             allowClear
             style={{ width: 180 }}
           />
         </Form.Item>
+        {isSuperAdmin&&<Form.Item style={{ marginTop: 16 }} label="所属库">
+          <Select
+            placeholder="请选择所属库"
+            filterOption={(input, option) =>
+              String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            style={{width:'200px'}}
+            onChange={val => setWarehouseSearchTxt(val)}
+            filterSort={(optionA, optionB) =>
+              String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+            }
+            allowClear
+          >
+            {warehouseList.map(warehouse => (
+              <Option key={warehouse.id} value={warehouse.id}>
+                {warehouse.databaseName}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>}
         <Form.Item style={{ marginTop: 16 }} >
           <Button type="primary" htmlType="submit" style={{ marginRight: 10 }}>
             查询
@@ -95,6 +155,7 @@ const claim: React.FC = () => {
           <Button
             onClick={() => {
               setSearchTxt('');
+              setWarehouseSearchTxt('');
               //刷新页面
 
             }}
@@ -120,7 +181,7 @@ const claim: React.FC = () => {
             <List
               loading={loading}
               dataSource={listData}
-                renderItem={item => <PurchaseItemCard key={item.itemId} item={item} updateList={fetchData} isAdmin={false} isProduct={true} editFlag={true} />}
+              renderItem={item => <PurchaseItemCard key={item.itemId} item={item} updateList={fetchData} isAdmin={false} isProduct={true} editFlag={true} />}
             />
             {/* 分页 */}
             <Row justify="end" style={{ marginTop: 16 }}>

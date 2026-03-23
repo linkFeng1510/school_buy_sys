@@ -317,7 +317,7 @@ const FixedThingsEntry: React.FC = () => {
     const userName = initialState?.currentUser?.name || ''
     const signatureImageUrl = initialState?.currentUser?.signatureImageUrl || ''
     formData.append('applyUser', userName);
-    formData.append('signatureImageUrl', signatureImageUrl);
+    formData.append('addSignatureImageUrl', signatureImageUrl);
     formData.append('purchaseType', values.purchaseType || '');
     formData.append('applyUserId', userId || '');
     formData.append(`purchaseSignName`, purchaseTypeName);
@@ -664,14 +664,14 @@ const FixedThingsEntry: React.FC = () => {
                 if (purchaseType === '2') {
                   return (
                     <Form.Item
-                      label="申购申请人"
+                      label="采购申请人"
                       name="applyUser"
 
-                      rules={[{ required: true, message: "请选择申购申请人" }]}
+                      rules={[{ required: true, message: "请选择采购申请人" }]}
                       required
                     >
                       <Select
-                        placeholder="请选择申购申请人"
+                        placeholder="请选择采购申请人"
                         showSearch
                         filterOption={(input, option) =>
                           String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
@@ -743,13 +743,13 @@ const FixedThingsEntry: React.FC = () => {
             if (purchaseType === '2') {
               return (
                 <Form.Item
-                  label="申购申请人"
+                  label="采购申请人"
                   name="applyUser"
-                  rules={[{ required: true, message: "请选择申购申请人" }]}
+                  rules={[{ required: true, message: "请选择采购申请人" }]}
                   required
                 >
                   <Select
-                    placeholder="请选择申购申请人"
+                    placeholder="请选择采购申请人"
                     showSearch
                     filterOption={(input, option) =>
                       String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())

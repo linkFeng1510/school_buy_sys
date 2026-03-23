@@ -17,7 +17,10 @@ import {
   Popconfirm,
   Row,
   Typography,
+  Select
 } from "antd";
+import { set } from "lodash";
+const { Option } = Select;
 import React, { ReactNode, useEffect, useState } from "react";
 
 // Define the type for goods items
@@ -48,10 +51,35 @@ const ApplyRecord: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { initialState } = useModel("@@initialState");
   const { currentUser } = initialState || {};
+   const [warehouseList, setWarehouseList] = useState<any[]>([]);
   const [addLocation, setAddLocation] = useState<string>("");
+  const [warehouseSearchTxt, setWarehouseSearchTxt] = useState('');
+  // 获取仓库列表
+    const fetchWarehouseList = async () => {
+      try {
+        const result = await request('/api/database/list', {
+          method: 'POST',
+          data: {
+            pageNum: 1,
+            pageSize: 100 // 获取所有仓库
+          }
+        });
+
+        if (result.code === 200) {
+          let list = result.data.records;
+          setWarehouseList(list);
+          setWarehouseSearchTxt(list[0]?.id);
+        } else {
+          message.error('获取仓库列表失败: ' + result.msg);
+        }
+      } catch (error) {
+        message.error('获取仓库列表失败');
+      }
+    };
   // Fetch goods data from API
   useEffect(() => {
     fetchGoods();
+    fetchWarehouseList();
   }, []);
 
   const fetchGoods = async () => {
@@ -67,6 +95,7 @@ const ApplyRecord: React.FC = () => {
           itemStatus: 0,
           pageSize: 1000,
           itemName: search || "",
+          libId: warehouseSearchTxt || ""
         },
       });
 
@@ -146,31 +175,56 @@ const ApplyRecord: React.FC = () => {
       message.warning("请先添加物品");
       return;
     }
+    // 现根据libId区分数据
+    let libIdObj: any = {};
+    cart.forEach((curr) => {
+      if (!libIdObj[curr.libId]) {
+        libIdObj[curr.libId] = [];
+      }
+      libIdObj[curr.libId].push(curr);
+    });
+
     const items = cart.map((curr) => {
       return {
         itemId: curr.itemId,
         isFixedAsset: curr.isFixedAsset ? 1 : 0,
         claimQuantity: curr.num,
+        libId: curr.libId,
       };
     });
-    const params = {
-      userId: currentUser?.userId,
-      username: currentUser?.name,
-      items: items,
-    };
-    // Here you would typically send the cart data to the backend
-    const result = await request("/api/claim/add", {
-      method: "POST",
-      data: params,
+    let promiseList: any[] = []
+    const libIds = Object.keys(libIdObj);
+    libIds.forEach((libId) => {
+      const itemsForLib = libIdObj[libId];
+      const params = {
+        userId: currentUser?.userId,
+        username: currentUser?.name,
+        items: itemsForLib.map((curr: any) => {
+          return {
+            itemId: curr.itemId,
+            isFixedAsset: curr.isFixedAsset ? 1 : 0,
+            claimQuantity: curr.num,
+            libId: curr.libId,
+          };
+        }),
+        libId: libId
+      };
+      promiseList.push(request('/api/claim/add', {
+        method: 'POST',
+        data: params
+      }));
     });
-    if (result.success) {
+
+    // Here you would typically send the cart data to the backend
+    const result = await Promise.all(promiseList)
+    if (result.every(res => res.code === 200)) {
       message.success("提交成功");
       setCart([]);
       setDrawerOpen(false);
       fetchGoods();
       history.push('/workbench/purchase-record');
     } else {
-      message.error(result.msg || "提交失败");
+      message.error("提交失败");
     }
   };
 
@@ -189,6 +243,26 @@ const ApplyRecord: React.FC = () => {
       >
         <Form.Item name="search">
           <Input placeholder="搜索物品名称" allowClear style={{ width: 220 }} />
+        </Form.Item>
+        <Form.Item label="所属库">
+          <Select
+            placeholder="请选择所属库"
+            filterOption={(input, option) =>
+              String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            style={{ width: '200px' }}
+            onChange={val => setWarehouseSearchTxt(val)}
+            filterSort={(optionA, optionB) =>
+              String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+            }
+            allowClear
+          >
+            {warehouseList.map(warehouse => (
+              <Option key={warehouse.id} value={warehouse.id}>
+                {warehouse.databaseName}
+              </Option>
+            ))}
+          </Select>
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">

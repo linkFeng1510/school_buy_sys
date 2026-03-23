@@ -107,8 +107,9 @@ const ProductItem = ({ detail, hideTotal = false, isProduct = false, editFlag = 
         <div style={{ color: '#888', fontSize: 12 }}>{isProduct ? '库存' : '数量'}:{quality}</div>
         <div style={{ color: '#888', fontSize: 12 }}>单价:{detail.price}元/{detail.unit}</div>
         <div style={{ color: '#888', fontSize: 12 }}>{isFixedAsset ? "资产" : "商品"}分类:{!isFixedAsset && (<>{(detail.categoryLevel1Name) || '无'} - {detail.categoryLevel2Name}</>)} {isFixedAsset && detail.fixedAssetName}</div>
-        {isFixedAsset && detail.storagePath && <div style={{ color: '#888', fontSize: 12 }}>存放地址:{detail.storagePath}</div>}
+        {isFixedAsset && detail.storagePath && !detail.hideStoragePath && <div style={{ color: '#888', fontSize: 12 }}>存放地址:{detail.storagePath}</div>}
         {!hideTotal && <div style={{ color: '#888', fontSize: 12 }}>小计:{quality * detail.price}元</div>}
+        {!isFixedAsset &&<div style={{ color: '#888', fontSize: 12 }}>所属库:{detail.libName}</div>}
       </div>
     </div>
   )

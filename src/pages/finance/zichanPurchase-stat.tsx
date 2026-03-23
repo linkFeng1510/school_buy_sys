@@ -7,7 +7,7 @@ import { request } from '@umijs/max';
 
 interface DataType {
   id: string;
-  productName: string;
+  fixedAssetName: string;
   brandName: string;
   spec: string;
   unit: string;

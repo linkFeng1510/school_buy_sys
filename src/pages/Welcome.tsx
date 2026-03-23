@@ -22,10 +22,10 @@ const iconMap: Record<string, React.ReactNode> = {
   '首页': <HomeOutlined />,
   '数据录入记录': <DatabaseOutlined />,
   '物品申领记录': <DatabaseOutlined />,
-  '入库审批记录': <DatabaseOutlined />,
-  '申领审批': <DatabaseOutlined />,
+  '入库确认记录': <DatabaseOutlined />,
+  '申领确认': <DatabaseOutlined />,
   '低值易耗数据录入': <ShoppingOutlined />,
-  '入库审批': <FileSearchOutlined />,
+  '入库确认': <FileSearchOutlined />,
   '物品管理': <BarChartOutlined />,
   '物品申领': <AppstoreOutlined />,
   '物品申领审核': <FileSearchOutlined />,
@@ -98,7 +98,7 @@ const ApplyConfirm: React.FC = () => {
     allMenu.push(item, ...item.childrenList)
   })
   const [childrenList, setChildrenList] = useState<any[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | undefined>(undefined);
   const [isFixedAsset, setIsFixedAsset] = useState(false);
   const eventName = (item: any) => {
     let strName = '';
@@ -115,19 +115,19 @@ const ApplyConfirm: React.FC = () => {
       // 如果item中存在orderNo值，那么有三种状态，0待审核，1通过，2驳回
       if (item.auditStatus !== undefined) {
         if (item.auditStatus == '0') {
-          strName = '入库审批';
+          strName = '入库确认';
         } else if (item.auditStatus == '1') {
           if(item.isFixedAsset === 1){
-            strName = '资产入库审批已通过';
+            strName = '资产入库确认已通过';
           } else {
-            strName = '低值易耗数据入库审批已通过';
+            strName = '低值易耗数据入库确认已通过';
           }
           // }
         } else if (item.auditStatus == '2') {
           if(item.isFixedAsset === 1){
-            strName = '资产入库审批被驳回';
+            strName = '资产入库确认被驳回';
           } else {
-            strName = '低值易耗数据入库审批被驳回';
+            strName = '低值易耗数据入库确认被驳回';
           }
         }
       }
@@ -213,7 +213,7 @@ const columns = [
     dataIndex: 'shelfStatus',
     key: 'shelfStatus',
     render: (status: number, row: any) => {
-      return <StatusTxt item={row} isAdmin={isAdmin} isProduct={isProduct} />;
+      return <StatusTxt item={row} isAdmin={isAdmin!} isProduct={isProduct} />;
     }
   },
   {
@@ -221,13 +221,13 @@ const columns = [
     key: 'action',
     render: (_: any, record: any) => {
       record.updateList = fetchData;
-      return <ActionButton item={record}  isAdmin={isAdmin} isProduct={isProduct} />;
+      return <ActionButton item={record}  isAdmin={isAdmin!} isProduct={isProduct} />;
     },
   },
 ];
 
 // 获取 API 数据
-const fetchData = async () => {
+  const fetchData = async () => {
   try {
     let params: any = {
       pageNum: page,
@@ -252,7 +252,6 @@ const fetchData = async () => {
         });
         // 根据某个字段排序，例如按id降序
         setListData(combinedData || []);
-        console.log(combinedData, 'combinedData');
       }
     })
   } catch (error) {
@@ -261,9 +260,6 @@ const fetchData = async () => {
   } finally {
   }
 };
-useEffect(() => {
-  fetchData();
-}, [isAdmin, isFixedAsset]);
 useEffect(() => {
   setChildrenList(allMenu || []);
 }, [currMenu]);
@@ -274,37 +270,53 @@ const visibleMenuItems = menuItems.filter(item => {
   return childrenList.find(child => (child.menuName) === (item.name));
 });
 useEffect(() => {
+  if (visibleMenuItems.length === 0){
+    return;
+  }
   let hasVisibleItems = visibleMenuItems.some(item => {
-    return item.name.includes('审批');
+    return item.name.includes('确认');
   });
-  setIsAdmin(hasVisibleItems);
-  if (hasVisibleItems){
+
+  let fixedAssetValue = false;
+  if (hasVisibleItems) {
     visibleMenuItems.some(item => {
-      if (item.name.includes('资产')){
-        setIsFixedAsset(true);
+      if (item.name.includes('资产')) {
+        fixedAssetValue = true;
         return true;
-      } else if (item.name.includes('低值易耗')){
-        setIsFixedAsset(false);
+      } else if (item.name.includes('低值易耗')) {
+        fixedAssetValue = false;
         return true;
       }
       return false;
     });
   }
-}, [visibleMenuItems]);
 
-// 从listData生成进行中的事件数据
-  const ongoingEvents = isAdmin?  listData: listData.filter(item =>{
-    if (currentUser?.userId || undefined === 1){
-      return true;
+  // Update states only if they changed
+  setIsAdmin(hasVisibleItems);
+
+  setIsFixedAsset(prev => {
+    if (hasVisibleItems && prev !== fixedAssetValue) {
+      return fixedAssetValue;
     }
-    return item.approvalUsername === currentUser?.name || item.applyUser === currentUser?.name;
+    return prev;
   });
+}, [visibleMenuItems]);
+  useEffect(() => {
+    console.log(isAdmin,'isAdmin');
+    if(isAdmin === undefined){
+      return;
+    }
+    fetchData();
+  }, [isAdmin]);
+// 从listData生成进行中的事件数据
+  const ongoingEvents = listData
 
 return (
   <PageContainer>
     {/* 顶部展示栏 */}
+    {/* <Card style={{ marginBottom: 16, backgroundImage: 'url(/schoolBg.jpg)', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'bottom' }} className='innerSchoolBg'> */}
     <Card style={{ marginBottom: 16 }}>
-      <Typography.Title level={4} style={{ textAlign: 'center', margin: 0 }}>
+      <Typography.Title level={4} style={{ textAlign: 'center', margin: 0, }} >
         学校资产管理系统
       </Typography.Title>
     </Card>

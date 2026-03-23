@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Card, Col, Form, Row, Select, Space, message, Modal } from 'antd';
 import { PageContainer, ProTable, ProColumns } from '@ant-design/pro-components';
-import * as XLSX from 'xlsx';
+const { Option } = Select;
+
 // Add axios for API requests
 import { request } from '@umijs/max';
 
@@ -48,11 +49,38 @@ const ApplicationListPage: React.FC = () => {
   const [approvers, setApprovers] = useState<User[]>([]);
   const [selectedApprover, setSelectedApprover] = useState<string | undefined>(undefined);
   const [approverLoading, setApproverLoading] = useState(false);
+  const [warehouseId, setWarehouseId] = useState<string | undefined>('1');
+  const [warehouseList, setWarehouseList] = useState<any[]>([]);
 
+  // 获取仓库列表
+  const fetchWarehouseList = async () => {
+    try {
+      const result = await request('/api/database/list', {
+        method: 'POST',
+        data: {
+          pageNum: 1,
+          pageSize: 100 // 获取所有仓库
+        }
+      });
+
+      if (result.code === 200) {
+        let list = result.data.records;
+        setWarehouseList(list);
+        setWarehouseId(list[0]?.id);
+      } else {
+        message.error('获取仓库列表失败: ' + result.msg);
+      }
+    } catch (error) {
+      message.error('获取仓库列表失败');
+    }
+  };
+  useEffect(() => {
+    fetchWarehouseList();
+  }, []);
   // Fetch data from API
   useEffect(() => {
     fetchData();
-  }, [page, pageSize, currYear, currMonth]);
+  }, [page, pageSize, currYear, currMonth, warehouseId, currSchoolSection]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -65,6 +93,7 @@ const ApplicationListPage: React.FC = () => {
           month: currMonth,
           pageNum: page,
           pageSize: pageSize,
+          libId: warehouseId,
           applyUserSchoolSection: currSchoolSection ? currSchoolSection : ''
         }
       });
@@ -86,10 +115,10 @@ const ApplicationListPage: React.FC = () => {
   const fetchApprovers = async () => {
     setApproverLoading(true);
     try {
-      const result = await request<UserQueryResponse>('/api/user/query',{
-        method: 'POST',
-        data: {
-          isFixedAsset: 0
+      const result = await request<UserQueryResponse>('/api/user/getLibManager', {
+        method: 'GET',
+        params: {
+          libId: warehouseId
         }
       });
       if (result.code === 200) {
@@ -108,6 +137,7 @@ const ApplicationListPage: React.FC = () => {
     // Fetch approvers and show modal
     await fetchApprovers();
     setIsModalVisible(true);
+    // handleModalOk();
   };
 
   const handleModalOk = async () => {
@@ -123,7 +153,8 @@ const ApplicationListPage: React.FC = () => {
           year: currYear,
           month: currMonth,
           applyUserSchoolSection: currSchoolSection ? currSchoolSection : '',
-          lowValueUserId: selectedApprover
+          lowValueUserId: selectedApprover,
+          libId: warehouseId,
         },
         responseType: 'blob' // Important for handling file download
       });
@@ -251,6 +282,27 @@ const ApplicationListPage: React.FC = () => {
             <Select.Option value={1}>小学部</Select.Option>
             <Select.Option value={2}>初中部</Select.Option>
             <Select.Option value={3}>其他</Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item label="选择仓库" style={{ marginTop: 16 }}>
+          {/* 仓库下拉框 */}
+          <Select
+            key="warehouse"
+            style={{ width: 120 }}
+            value={warehouseId}
+            filterOption={(input, option) =>
+              String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            filterSort={(optionA, optionB) =>
+              String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+            }
+            onChange={(value) => setWarehouseId(value)}
+          >
+            {warehouseList.map(warehouse => (
+              <Option key={warehouse.id} value={warehouse.id} >
+                {warehouse.databaseName}
+              </Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item style={{ marginTop: 16 }}>

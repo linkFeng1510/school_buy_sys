@@ -32,7 +32,7 @@ const claim: React.FC = () => {
         pageNum: page,
         pageSize: pageSize,
         itemStatus: tab,
-        isAdmin: false,
+        isAdmin: true,
         isFixedAsset: 1
       };
       // Add filters if they exist

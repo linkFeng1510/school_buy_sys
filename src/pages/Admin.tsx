@@ -29,14 +29,14 @@ const Admin: React.FC = () => {
           }}
         />
         <Typography.Title level={2} style={{ textAlign: 'center' }}>
-          <SmileTwoTone /> 学校采购系统{' '}
+          <SmileTwoTone /> 人亦资产管理平台{' '}
           <HeartTwoTone twoToneColor="#eb2f96" /> You
         </Typography.Title>
       </Card>
       <p style={{ textAlign: 'center', marginTop: 24 }}>
         Want to add more pages? Please refer to{' '}
         <a
-          href="https://pro.ant.design/docs/block-cn"
+          href="./"
           target="_blank"
           rel="noopener noreferrer"
         >

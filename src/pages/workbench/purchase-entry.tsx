@@ -74,6 +74,7 @@ const PurchaseEntry: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [formValues, setFormValues] = useState<any>({});
   const { initialState } = useModel('@@initialState');
+  const [warehouseList, setWarehouseList] = useState<any[]>([]);
   interface Option {
     id: number;
     categoryName: string;
@@ -173,8 +174,40 @@ const PurchaseEntry: React.FC = () => {
     } finally {
     }
   };
+  // 获取仓库列表
+  const fetchWarehouseList = async () => {
+    try {
+      const result = await request('/api/database/list', {
+        method: 'POST',
+        data: {
+          pageNum: 1,
+          pageSize: 100 // 获取所有仓库
+        }
+      });
+
+      if (result.code === 200) {
+        let list = result.data.records;
+        setWarehouseList(list);
+        setWarehouseId((initialState?.currentUser as any)?.libId || '');
+      } else {
+        message.error('获取仓库列表失败: ' + result.msg);
+      }
+    } catch (error) {
+      message.error('获取仓库列表失败');
+    }
+  };
+  const setWarehouseId = (id: any) => {
+    form.setFieldsValue({
+      libId: id
+    })
+    addTemplateForm.setFieldsValue({
+      libId: id
+    })
+  }
   useEffect(() => {
     fetchUsers()
+    fetchWarehouseList()
+
   }, [])
   // Update the useEffect to also fetch users when needed
   useEffect(() => {
@@ -217,7 +250,8 @@ const PurchaseEntry: React.FC = () => {
     formData.append('purchaseType', values.purchaseType || '');
     formData.append('applyUserId', userId || '');
     formData.append(`purchaseSignName`, purchaseTypeName);
-    formData.append(`purchaseSignId`, values.applyUser||"");
+    formData.append(`purchaseSignId`, values.applyUser || "");
+    formData.append(`libId`, values.libId || "");
     items.map((item, index) => {
       console.log(item, 'item');
       formData.append(`items[${index}].productName`, item.name);
@@ -319,11 +353,13 @@ const PurchaseEntry: React.FC = () => {
     const userName = initialState?.currentUser?.name || ''
     const signatureImageUrl = initialState?.currentUser?.signatureImageUrl || ''
     formData.append('applyUser', userName);
-    formData.append('signatureImageUrl', signatureImageUrl);
+    formData.append('addSignatureImageUrl', signatureImageUrl);
     formData.append('purchaseType', values.purchaseType || '');
     formData.append('applyUserId', userId || '');
     formData.append(`purchaseSignName`, purchaseTypeName);
-    formData.append(`purchaseSignId`, values.applyUser||"");
+    formData.append(`purchaseSignId`, values.applyUser || "");
+    formData.append(`libId`, values.libId || "");
+
     setSpinning(true);
     try {
       const response = await request('/api/stat/lowValueImport', {
@@ -347,7 +383,6 @@ const PurchaseEntry: React.FC = () => {
       setSpinning(false);
     }
   };
-  console.log(formValues, 'formValuesformValues');
   return (
     <PageContainer>
       <Spin spinning={spinning} size="large" tip="订单创建中。。。" fullscreen={true} />
@@ -666,8 +701,8 @@ const PurchaseEntry: React.FC = () => {
                       rules={[{ required: true, message: "请选择申购申请人" }]}
                       required
                     >
-                    <Select
-                    placeholder="请选择申购申请人"
+                      <Select
+                        placeholder="请选择申购申请人"
                         showSearch
                         filterOption={(input, option) =>
                           String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
@@ -675,19 +710,39 @@ const PurchaseEntry: React.FC = () => {
                         filterSort={(optionA, optionB) =>
                           String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
                         }
-                    loading={users.length === 0 && purchaseType === '2'}
-                  >
-                    {users.map(user => (
-                      <Option key={user.userId} value={user.userId}>
-                        {user.name}
-                      </Option>
-                    ))}
-                  </Select>
-                  </Form.Item>
+                        loading={users.length === 0 && purchaseType === '2'}
+                      >
+                        {users.map(user => (
+                          <Option key={user.userId} value={user.userId}>
+                            {user.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
                   );
                 }
                 return null;
               }}
+            </Form.Item>
+            <Form.Item
+              label="所属库"
+              name="libId"
+              rules={[{ required: true, message: "请选择所属库" }]}
+            >
+              <Select placeholder="请选择所属库"
+                filterOption={(input, option) =>
+                  String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                disabled={true}
+                filterSort={(optionA, optionB) =>
+                  String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                }>
+                {warehouseList.map(warehouse => (
+                  <Option key={warehouse.id} value={warehouse.id}>
+                    {warehouse.databaseName}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
             <Form.Item>
               <Upload
@@ -765,6 +820,27 @@ const PurchaseEntry: React.FC = () => {
             }
             return null;
           }}
+        </Form.Item>
+        <Form.Item
+          label="所属库"
+          name="libId"
+          rules={[{ required: true, message: "请选择所属库" }]}
+        >
+          <Select placeholder="请选择所属库"
+            filterOption={(input, option) =>
+              String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            disabled={true}
+            filterSort={(optionA, optionB) =>
+              String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+            }
+          >
+            {warehouseList.map(warehouse => (
+              <Option key={warehouse.id} value={warehouse.id}>
+                {warehouse.databaseName}
+              </Option>
+            ))}
+          </Select>
         </Form.Item>
         <Form.Item>
           <Space>

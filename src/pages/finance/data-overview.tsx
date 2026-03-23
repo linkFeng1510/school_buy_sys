@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Card, Col, Form, Row, Select, Space, message, Modal } from 'antd';
 import { PageContainer, ProTable, ProColumns } from '@ant-design/pro-components';
 import { request } from '@umijs/max';
-
+const { Option } = Select;
 // Add this utility function for CSV generation
 const convertToCSV = (data: DataType[]): string => {
   // Define headers
@@ -20,14 +20,14 @@ const convertToCSV = (data: DataType[]): string => {
     item.productName,
     item.unit,
     item.price,
-    item.initialQuantity,
-    item.initialAmount,
+    item.openingQuantity,
+    item.openingAmount,
     item.increaseQuantity,
     item.increaseAmount,
     item.decreaseQuantity,
     item.decreaseAmount,
-    item.finalQuantity,
-    item.finalAmount
+    item.closingQuantity,
+    item.closingAmount
   ].join(',')).join('\n');
 
   return headers + rows;
@@ -53,14 +53,14 @@ interface DataType {
   productName: string;
   unit: string;
   price: number;
-  initialQuantity: number;
-  initialAmount: number;
+  openingQuantity: number;
+  openingAmount: number;
   increaseQuantity: number;
   increaseAmount: number;
   decreaseQuantity: number;
   decreaseAmount: number;
-  finalQuantity: number;
-  finalAmount: number;
+  closingQuantity: number;
+  closingAmount: number;
 }
 
 // User interface for approvers
@@ -102,11 +102,38 @@ const ApplicationListPage: React.FC = () => {
   const [selectedInventoryTaker, setSelectedInventoryTaker] = useState<string | undefined>(undefined);
   const [selectedSupervisor, setSelectedSupervisor] = useState<string | undefined>(undefined);
   const [userLoading, setUserLoading] = useState(false);
+  const [warehouseId, setWarehouseId] = useState<string | undefined>('1');
+const [warehouseList, setWarehouseList] = useState<any[]>([]);
 
+  // 获取仓库列表
+  const fetchWarehouseList = async () => {
+    try {
+      const result = await request('/api/database/list', {
+        method: 'POST',
+        data: {
+          pageNum: 1,
+          pageSize: 100 // 获取所有仓库
+        }
+      });
+
+      if (result.code === 200) {
+        let list = result.data.records;
+        setWarehouseList(list);
+        setWarehouseId(list[0]?.id);
+      } else {
+        message.error('获取仓库列表失败: ' + result.msg);
+      }
+    } catch (error) {
+      message.error('获取仓库列表失败');
+    }
+  };
+  useEffect(() => {
+      fetchWarehouseList();
+    }, []);
   // Use real API data instead of mock data
   useEffect(() => {
     fetchData();
-  }, [currYear, currMonth, page, pageSize]);
+  }, [currYear, currMonth, page, pageSize, warehouseId]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -119,6 +146,7 @@ const ApplicationListPage: React.FC = () => {
           month: currMonth,
           pageNum: page,
           pageSize: pageSize,
+          libId: warehouseId
         }
       });
       if (result.code === 200) {
@@ -142,10 +170,10 @@ const ApplicationListPage: React.FC = () => {
   const fetchInventoryTakers = async () => {
     setUserLoading(true);
     try {
-      const result = await request<UserQueryResponse>('/api/user/query', {
-        method: 'POST',
-        data: {
-          isFixedAsset: 0
+      const result = await request<UserQueryResponse>('/api/user/getLibManager', {
+        method: 'GET',
+        params: {
+          libId: warehouseId
         }
       });
       if (result.code === 200) {
@@ -161,10 +189,10 @@ const ApplicationListPage: React.FC = () => {
   // Fetch supervisors from API
   const fetchSupervisors = async () => {
     try {
-      const result = await request<UserQueryResponse>('/api/user/query', {
-        method: 'POST',
-        data: {
-          isFixedAsset: 1
+      const result = await request<UserQueryResponse>('/api/user/getOtherLibManager', {
+        method: 'GET',
+        params: {
+          libId: warehouseId
         }
       });
       if (result.code === 200) {
@@ -202,8 +230,9 @@ const ApplicationListPage: React.FC = () => {
         data: {
           year: currYear,
           month: currMonth,
-          lowValueUserId: selectedInventoryTaker,
-          fixedAssetUserId: selectedSupervisor
+          stockTakerId: selectedInventoryTaker,
+          auditorId: selectedSupervisor,
+          libId: warehouseId
         },
         responseType: 'blob' // Important for handling file downloads
       });
@@ -237,7 +266,10 @@ const ApplicationListPage: React.FC = () => {
     setSelectedInventoryTaker(undefined);
     setSelectedSupervisor(undefined);
   };
-
+  const showWarehouseName = () => {
+    const warehouse = warehouseList.find(wh => wh.id === warehouseId);
+    return warehouse ? warehouse.databaseName : '未知仓库';
+  }
   const columns: ProColumns<DataType>[] = [
     {
       title: '序号',
@@ -268,13 +300,13 @@ const ApplicationListPage: React.FC = () => {
       children: [
         {
           title: '数量',
-          dataIndex: 'initialQuantity',
+          dataIndex: 'openingQuantity',
           valueType: 'digit',
           width: 100,
         },
         {
           title: '金额',
-          dataIndex: 'initialAmount',
+          dataIndex: 'openingAmount',
           valueType: 'money',
           width: 100,
         },
@@ -319,13 +351,13 @@ const ApplicationListPage: React.FC = () => {
       children: [
         {
           title: '数量',
-          dataIndex: 'finalQuantity',
+          dataIndex: 'closingQuantity',
           valueType: 'digit',
           width: 100,
         },
         {
           title: '金额',
-          dataIndex: 'finalAmount',
+          dataIndex: 'closingAmount',
           valueType: 'money',
           width: 100,
         },
@@ -361,6 +393,27 @@ const ApplicationListPage: React.FC = () => {
               <Select.Option key={i + 1} value={i + 1} disabled={currYear === new Date().getFullYear() && i + 1 > new Date().getMonth() + 1}>
                 {i + 1}月
               </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Form.Item label="选择仓库" style={{ marginTop: 16 }}>
+          {/* 仓库下拉框 */}
+          <Select
+            key="warehouse"
+            style={{ width: 120 }}
+            value={warehouseId}
+            filterOption={(input, option) =>
+              String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            filterSort={(optionA, optionB) =>
+              String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+            }
+            onChange={(value) => setWarehouseId(value)}
+          >
+            {warehouseList.map(warehouse => (
+              <Option key={warehouse.id} value={warehouse.id} >
+                {warehouse.databaseName}
+              </Option>
             ))}
           </Select>
         </Form.Item>
@@ -406,16 +459,14 @@ const ApplicationListPage: React.FC = () => {
         >
           <Select
             placeholder="请选择盘点人"
+            style={{ width: "100%" }}
             value={selectedInventoryTaker}
             onChange={setSelectedInventoryTaker}
-            loading={userLoading}
-            showSearch
-            optionFilterProp="children"
           >
-            {inventoryTakers.map(user => (
-              <Select.Option key={user.userId} value={user.userId}>
+            {inventoryTakers.map((user) => (
+              <Option key={user.userId} value={user.userId}>
                 {user.name}
-              </Select.Option>
+              </Option>
             ))}
           </Select>
         </Form.Item>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Table, Input, Button, Modal, Form, Input as AntInput, message, Select, Radio,Image } from 'antd';
+import { Table, Input, Button, Modal, Form, Input as AntInput, message, Select, Radio, Image } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { request, useModel } from 'umi';
 import { get } from 'lodash';
@@ -22,6 +22,10 @@ interface User {
   position: string;
   role: string;
   status: boolean;
+  isLowValueManager:number|null;
+  isLowValueAuditor:number|null;
+  isAssetAuditor:number|null;
+  libId: number|null;
 }
 
 interface Role {
@@ -44,6 +48,10 @@ interface UserAddParams {
   roleIds: number[];
   remark?: string;
   status?: string;
+  libId?: number;
+  isLowValueManager?: number;
+  isLowValueAuditor?: number;
+  isAssetAuditor?: number;
   signatureImageUrl?: string;
 }
 
@@ -60,6 +68,10 @@ interface UserEditParams {
   status: string;
   remark?: string;
   password: string;
+  libId?: number;
+  isLowValueManager?: number;
+  isLowValueAuditor?: number;
+  isAssetAuditor?: number;
 }
 
 interface UserQueryParams {
@@ -115,6 +127,7 @@ const UserManagement: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const [pageNum, setPageNum] = useState(1);
   const [pageSize, setpageSize] = useState(10);
+  const [warehouseList, setWarehouseList] = useState<any[]>([]);
 
   // 获取角色列表
   const fetchRoles = async () => {
@@ -136,6 +149,27 @@ const UserManagement: React.FC = () => {
       }
     } catch (error) {
       message.error('获取角色列表失败');
+    }
+  };
+  // 获取仓库列表
+  const fetchWarehouseList = async () => {
+    try {
+      const result = await request('/api/database/list', {
+        method: 'POST',
+        data: {
+          pageNum: 1,
+          pageSize: 100 // 获取所有仓库
+        }
+      });
+
+      if (result.code === 200) {
+        let list = result.data.records;
+        setWarehouseList(list);
+      } else {
+        message.error('获取仓库列表失败: ' + result.msg);
+      }
+    } catch (error) {
+      message.error('获取仓库列表失败');
     }
   };
 
@@ -161,6 +195,10 @@ const UserManagement: React.FC = () => {
         position: item.position,
         role: item.roles.map((r: any) => r.roleName).join(', '),
         status: item.status, // 假设'0'表示启用
+        isLowValueManager: item.isLowValueManager,
+        isLowValueAuditor: item.isLowValueAuditor,
+        isAssetAuditor: item.isAssetAuditor,
+        libId: item.libId,
       }));
       setData(transformedData);
       setTotal(result.data.total);
@@ -175,6 +213,7 @@ const UserManagement: React.FC = () => {
   useEffect(() => {
     fetchUsers({ pageNum: 1, pageSize });
     fetchRoles(); // 获取角色数据
+    fetchWarehouseList(); // 获取仓库数据
   }, []);
 
   // 搜索功能
@@ -248,6 +287,10 @@ const UserManagement: React.FC = () => {
         roleIds: Array.isArray(values.role) ? values.role : [values.role], // 处理多选情况
         remark: '新员工',
         status: '1',
+        isLowValueManager: values.isLowValueManager ? 1 : 0,
+        isLowValueAuditor: values.isLowValueAuditor ? 1 : 0,
+        isAssetAuditor: values.isAssetAuditor ? 1 : 0,
+        libId: values.libId,
       };
 
       const success = await addUser(params);
@@ -273,6 +316,7 @@ const UserManagement: React.FC = () => {
       return role ? role.roleId : null;
     }).filter(id => id !== null) as number[];
     // Set form values for editing
+    console.log(record,'recordrecord');
     editForm.setFieldsValue({
       userId: record.id,
       username: record.username,
@@ -283,7 +327,11 @@ const UserManagement: React.FC = () => {
       email: record.email,
       position: record.position,
       role: userRoleIds, // 使用角色ID
-      status: record.status
+      status: record.status,
+      isLowValueManager: record.isLowValueManager ? 1 : 0,
+      isLowValueAuditor: record.isLowValueAuditor ? 1 : 0,
+      isAssetAuditor: record.isAssetAuditor ? 1 : 0,
+      libId: record.libId,
     });
   };
 
@@ -304,7 +352,11 @@ const UserManagement: React.FC = () => {
         roleIds: Array.isArray(values.role) ? values.role : [values.role], // 处理多选情况
         status: values.status,
         remark: '编辑用户',
-        password: values.password
+        password: values.password,
+        isLowValueManager: values.isLowValueManager ? 1 : 0,
+        isLowValueAuditor: values.isLowValueAuditor ? 1 : 0,
+        isAssetAuditor: values.isAssetAuditor ? 1 : 0,
+        libId: values.libId,
       };
 
       const success = await editUser(params);
@@ -371,6 +423,9 @@ const UserManagement: React.FC = () => {
     { title: '邮箱', dataIndex: 'email', key: 'email' },
     { title: '职务', dataIndex: 'position', key: 'position' },
     { title: '角色', dataIndex: 'role', key: 'role' },
+    { title: '是否低值易耗品审核人', dataIndex: 'isLowValueAuditor', key: 'isLowValueAuditor', render: (isLowValueAuditor: number) => (isLowValueAuditor === 1 ? '是' : '否') },
+    { title: '是否资产审核人', dataIndex: 'isAssetAuditor', key: 'isAssetAuditor', render: (isAssetAuditor: number) => (isAssetAuditor === 1 ? '是' : '否') },
+    { title: '是否低值易耗品管理员', dataIndex: 'isLowValueManager', key: 'isLowValueManager', render: (isLowValueManager: number) => (isLowValueManager === 1 ? '是' : '否') },
     {
       title: '状态',
       dataIndex: 'status',
@@ -608,6 +663,71 @@ const UserManagement: React.FC = () => {
               <Option value={3}>其他</Option>
             </Select>
           </Form.Item>
+          <Form.Item
+            name="isLowValueAuditor"
+            label="是否低值易耗品审核人"
+            rules={[{ required: true, message: '请选择是否低值易耗品审核人' }]}
+          >
+            <Radio.Group>
+              <Radio value={1}>是</Radio>
+              <Radio value={0}>否</Radio>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            name="isAssetAuditor"
+            label="是否资产审核人"
+            rules={[{ required: true, message: '请选择是否资产审核人' }]}
+          >
+            <Radio.Group>
+              <Radio value={1}>是</Radio>
+              <Radio value={0}>否</Radio>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            name="isLowValueManager"
+            label="是否低值易耗品库管"
+            rules={[{ required: true, message: '请选择是否低值易耗品库管' }]}
+          >
+            <Radio.Group>
+              <Radio value={1}>是</Radio>
+              <Radio value={0}>否</Radio>
+            </Radio.Group>
+          </Form.Item>
+
+          <Form.Item noStyle shouldUpdate={(prevValues, curValues) => prevValues.isLowValueManager !== curValues.isLowValueManager}>
+            {({ getFieldValue }) => {
+              const isLowValueManager = getFieldValue('isLowValueManager');
+              if (isLowValueManager === 1) {
+                return (
+                  <Form.Item
+                    name="libId"
+                    label="所属库"
+                    rules={[{ required: true, message: '请选择所属库' }]}
+                  >
+                    <Select
+                      placeholder="请选择所属库"
+                      showSearch
+                      filterOption={(input, option) =>
+                        String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
+                      filterSort={(optionA, optionB) =>
+                        String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                      }
+                    >
+                      {warehouseList.map(warehouse => (
+                        <Option key={warehouse.id} value={warehouse.id}>
+                          {warehouse.databaseName}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                );
+              }
+              return null;
+            }}
+          </Form.Item>
+
+
           {/* <Form.Item
             name="signatureImageUrl"
             label="签名"
@@ -726,14 +846,77 @@ const UserManagement: React.FC = () => {
             </Select>
           </Form.Item>
           <Form.Item
-             shouldUpdate
+            name="isLowValueAuditor"
+            label="是否低值易耗品审核人"
+            rules={[{ required: true, message: '请选择是否低值易耗品审核人' }]}
+          >
+            <Radio.Group>
+              <Radio value={1}>是</Radio>
+              <Radio value={0}>否</Radio>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            name="isAssetAuditor"
+            label="是否资产审核人"
+            rules={[{ required: true, message: '请选择是否资产审核人' }]}
+          >
+            <Radio.Group>
+              <Radio value={1}>是</Radio>
+              <Radio value={0}>否</Radio>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            name="isLowValueManager"
+            label="是否低值易耗品库管"
+            rules={[{ required: true, message: '请选择是否低值易耗品库管' }]}
+          >
+            <Radio.Group>
+              <Radio value={1}>是</Radio>
+              <Radio value={0}>否</Radio>
+            </Radio.Group>
+          </Form.Item>
+
+          <Form.Item noStyle shouldUpdate={(prevValues, curValues) => prevValues.isLowValueManager !== curValues.isLowValueManager}>
+            {({ getFieldValue }) => {
+              const isLowValueManager = getFieldValue('isLowValueManager');
+              if (isLowValueManager === 1) {
+                return (
+                  <Form.Item
+                    name="libId"
+                    label="所属库"
+                    rules={[{ required: true, message: '请选择所属库' }]}
+                  >
+                    <Select
+                      placeholder="请选择所属库"
+                      showSearch
+                      filterOption={(input, option) =>
+                        String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
+                      filterSort={(optionA, optionB) =>
+                        String(optionA?.children ?? '').toLowerCase().localeCompare(String(optionB?.children ?? '').toLowerCase())
+                      }
+                    >
+                      {warehouseList.map(warehouse => (
+                        <Option key={warehouse.id} value={warehouse.id}>
+                          {warehouse.databaseName}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                );
+              }
+              return null;
+            }}
+          </Form.Item>
+          <Form.Item
+            shouldUpdate
             label="签名"
           >
             {({ getFieldValue }) => {
               const signatureImageUrl = getFieldValue('signatureImageUrl');
-              console.log(signatureImageUrl,'signatureImageUrl');
+              console.log(signatureImageUrl, 'signatureImageUrl');
               // 这个图片可以删除，实现这个功能
-              return <div className="signature-preview" style={{ position: 'relative', display: 'flex', alignItems: 'center' ,flexDirection: 'row'}}>
+              return <div className="signature-preview" style={{ position: 'relative', display: 'flex', alignItems: 'center', flexDirection: 'row' }}>
                 <Image src={signatureImageUrl} />
                 {/* 删除图标 */}
                 <div className="delete-icon" style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }} onClick={() => {
